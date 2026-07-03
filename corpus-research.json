@@ -1,0 +1,167 @@
+{
+  "verifiedAt": "2026-07-02",
+  "works": [
+    {
+      "author": "plato",
+      "title": "The Republic",
+      "translator": "Benjamin Jowett",
+      "gutenbergId": 1497,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/1497/pg1497.txt",
+      "licenseBasis": "Public domain in the USA; Jowett translation first published 1871, PG release 1998-10-01",
+      "verdict": "INCLUDE",
+      "notes": "Bibrec confirms translator Benjamin Jowett. START marker '*** START OF THE PROJECT GUTENBERG EBOOK THE REPUBLIC ***' present immediately before intro/analysis and 10-book text. A separate, more recent PG edition also exists as ebook #55201 (not needed; 1497 is the standard/most-downloaded one)."
+    },
+    {
+      "author": "plato",
+      "title": "Symposium",
+      "translator": "Benjamin Jowett",
+      "gutenbergId": 1600,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/1600/pg1600.txt",
+      "licenseBasis": "Public domain in the USA; Jowett translation, PG release 1999-01-01",
+      "verdict": "INCLUDE",
+      "notes": "Bibrec confirms translator Benjamin Jowett. Plain Text UTF-8 (accessible) format available, 196 kB."
+    },
+    {
+      "author": "plato",
+      "title": "Phaedo",
+      "translator": "Benjamin Jowett",
+      "gutenbergId": 1658,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/1658/pg1658.txt",
+      "licenseBasis": "Public domain in the USA; Jowett translation, PG release 1999-03-01",
+      "verdict": "INCLUDE",
+      "notes": "Bibrec confirms translator Benjamin Jowett. Plain Text UTF-8 (accessible) format available, 251 kB."
+    },
+    {
+      "author": "plato",
+      "title": "Apology",
+      "translator": "Benjamin Jowett",
+      "gutenbergId": 1656,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/1656/pg1656.txt",
+      "licenseBasis": "Public domain in the USA; Jowett translation, PG release 1999-02-01",
+      "verdict": "INCLUDE",
+      "notes": "Bibrec confirms translator Benjamin Jowett. Plain Text UTF-8 (accessible) format available, 105 kB."
+    },
+    {
+      "author": "plato",
+      "title": "Phaedrus",
+      "translator": "Benjamin Jowett",
+      "gutenbergId": 1636,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/1636/pg1636.txt",
+      "licenseBasis": "Public domain in the USA; Jowett translation, PG release 1999-02-01",
+      "verdict": "INCLUDE",
+      "notes": "Bibrec confirms translator Benjamin Jowett. Plain Text UTF-8 (accessible) format available, 230 kB."
+    },
+    {
+      "author": "nietzsche",
+      "title": "Thus Spake Zarathustra",
+      "translator": "Thomas Common",
+      "gutenbergId": 1998,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/1998/pg1998.txt",
+      "licenseBasis": "Public domain in the USA; Common translation, PG release 1999-12-01",
+      "verdict": "INCLUDE",
+      "notes": "Header confirms 'Translator: Thomas Common'. Full title 'Thus Spake Zarathustra: A Book for All and None'. Includes Elisabeth Forster-Nietzsche's introductory note. START marker present after license block."
+    },
+    {
+      "author": "nietzsche",
+      "title": "Beyond Good and Evil",
+      "translator": "Helen Zimmern",
+      "gutenbergId": 4363,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/4363/pg4363.txt",
+      "licenseBasis": "Public domain in the USA; Zimmern translation, PG release 2003-08-01",
+      "verdict": "INCLUDE",
+      "notes": "Bibrec and file header confirm translator Helen Zimmern. Transcriber's note in the plaintext indicates italics rendered as capitals and footnotes bracketed -- worth normalizing during ingestion. END marker not directly observed in fetch (truncated mid-Ch.III by fetch tool) but START marker and standard PG header/footer pattern present; format is standard PG plaintext so END marker is expected at EOF."
+    },
+    {
+      "author": "nietzsche",
+      "title": "The Genealogy of Morals",
+      "translator": "Horace B. Samuel",
+      "gutenbergId": 52319,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/52319/pg52319.txt",
+      "licenseBasis": "Public domain in the USA; Samuel translation, orig. pub. T.N. Foulis 1913 (Oscar Levy-edited Complete Works series), PG release 2016-06-13",
+      "verdict": "INCLUDE",
+      "notes": "Bibrec lists translator as 'Horace B. Samuel, M.A. (with J.M. Kennedy for the fragment section)'. Verified: the three main essays (Good and Evil/Good and Bad; Guilt/Bad Conscience; Meaning of Ascetic Ideals) are Samuel's translation; J.M. Kennedy translated only a supplementary 'Peoples and Countries' fragment appended at the end. Title on PG is 'The Genealogy of Morals: A Polemic'. START marker confirmed as '*** START OF THE PROJECT GUTENBERG EBOOK THE GENEALOGY OF MORALS ***'. If ingestion excludes the Kennedy fragment, translator attribution is unambiguously Samuel throughout."
+    },
+    {
+      "author": "nietzsche",
+      "title": "The Antichrist",
+      "translator": "H. L. Mencken",
+      "gutenbergId": 19322,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/19322/pg19322.txt",
+      "licenseBasis": "Public domain in the USA; Mencken translation pub. 1918 (Alfred A. Knopf), PG release 2006-09-18",
+      "verdict": "INCLUDE",
+      "notes": "File header explicitly confirms 'Translator: H. L. Mencken'. START marker '*** START OF THE PROJECT GUTENBERG EBOOK THE ANTICHRIST ***' present directly after header block, credits list Laura Wisewell and PGDP team."
+    },
+    {
+      "author": "hegel",
+      "title": "The Philosophy of History",
+      "translator": "J. Sibree",
+      "gutenbergId": null,
+      "plaintextUrl": null,
+      "licenseBasis": "N/A -- work not present on Project Gutenberg",
+      "verdict": "EXCLUDE",
+      "notes": "CONFIRMED NOT ON GUTENBERG. Checked the full Hegel author page (gutenberg.org/ebooks/author/2161, 14 titles) and ran direct site searches for 'Sibree' and '\"philosophy of history\" hegel' -- no match. The only Hegel works on PG are: The Logic of Hegel (Wallace trans., #55108), Lectures on the History of Philosophy vols 1-3 (#51635, #51636, #58169 -- a DIFFERENT work, a history of philosophy, not Hegel's philosophy of world-history), The Philosophy of Fine Art vols 1-4 (#55334, #55445, #55623, #55731) and Introduction thereto (#46330), Hegel's Philosophy of Mind (#39064), and two German-language texts (Phänomenologie des Geistes #6698, Wissenschaft der Logik vols 1-2 #6729/#6834). Do not confuse 'Lectures on the History of Philosophy' with 'The Philosophy of History' (Sibree's translation of Hegel's lectures on world-historical development) -- they are different books and only the former is on PG. No substitute PD translation of the Sibree work was found on PG. Per hard rule, verdict is EXCLUDE (not SUBSTITUTE) since no alternate translation of this specific work exists on the platform."
+    },
+    {
+      "author": "hegel",
+      "title": "Science of Logic",
+      "translator": "N/A",
+      "gutenbergId": null,
+      "plaintextUrl": null,
+      "licenseBasis": "Unclear / no verified public-domain English translation available",
+      "verdict": "EXCLUDE",
+      "notes": "Only the original German 'Wissenschaft der Logik' (vols 1-2, IDs 6729 and 6834) is on Gutenberg -- no English translation of any kind. Research confirms the Johnston & Struthers translation (1929, George Allen & Unwin) exists only via Internet Archive scans (e.g. archive.org/details/hegelsscienceofl0002whjo), not as a proofread PG plaintext edition, and its US public-domain status is not clearly established on Gutenberg's own terms (PG has not cleared/hosted it, and one cannot infer PD status merely from an IA scan existing). The di Giovanni translation (Cambridge, 2010) and the classic A.V. Miller translation (1969) are both still in copyright. Per the hard rule ('if license status is unclear, verdict = EXCLUDE'), this work is excluded entirely -- no PD English Science of Logic should be ingested from any source under this project's spec."
+    },
+    {
+      "author": "kant",
+      "title": "Critique of Pure Reason",
+      "translator": "J. M. D. Meiklejohn",
+      "gutenbergId": 4280,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/4280/pg4280.txt",
+      "licenseBasis": "Public domain in the USA; Meiklejohn translation pub. 1855, PG release 2003-07-01",
+      "verdict": "INCLUDE",
+      "notes": "File header explicitly confirms 'Translator: J. M. D. Meiklejohn'. START marker '*** START OF THE PROJECT GUTENBERG EBOOK THE CRITIQUE OF PURE REASON ***' present, followed by title page repeating translator credit."
+    },
+    {
+      "author": "kant",
+      "title": "Fundamental Principles of the Metaphysic of Morals",
+      "translator": "T. K. Abbott",
+      "gutenbergId": 5682,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/5682/pg5682.txt",
+      "licenseBasis": "Public domain in the USA; Abbott translation pub. 1873, PG release verified via bibrec",
+      "verdict": "INCLUDE",
+      "notes": "Bibrec confirms translator Thomas Kingsmill Abbott (1829-1913). Plain Text UTF-8 (accessible) format, 195 kB, available. Note: a related Kant/Abbott work 'The Metaphysical Elements of Ethics' also exists on PG as #5684 (not part of requested list, mentioned here only to avoid confusion)."
+    },
+    {
+      "author": "schopenhauer",
+      "title": "The World as Will and Idea (Vol. 1 of 3)",
+      "translator": "R. B. Haldane and J. Kemp",
+      "gutenbergId": 38427,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/38427/pg38427.txt",
+      "licenseBasis": "Public domain in the USA; Haldane & Kemp translation, 7th ed. (Kegan Paul, Trench, Trübner & Co., 1909), PG release 2011-12-27",
+      "verdict": "INCLUDE",
+      "notes": "Bibrec and file header confirm translators R.B. Haldane, M.A. and J. Kemp, M.A. Note this PG edition is VOLUME 1 OF 3 only -- vols 2 and 3 were not requested/verified in this pass; if the full work is needed later, search PG for vol 2/3 IDs separately before assuming they exist. Contains translators' preface explaining 'Vorstellung' rendered as 'idea' not 'representation'."
+    },
+    {
+      "author": "schopenhauer",
+      "title": "Essays of Schopenhauer (T. Bailey Saunders selections)",
+      "translator": "T. Bailey Saunders",
+      "gutenbergId": 10741,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/10741/pg10741.txt",
+      "licenseBasis": "Public domain in the USA; Saunders selections/translations pub. 1889-1897 (Swan Sonnenschein), PG release 2004-01-01",
+      "verdict": "INCLUDE",
+      "notes": "IMPORTANT: There is no single 'Essays of Schopenhauer' Gutenberg ebook -- Saunders' selections were published by PG as SEVEN SEPARATE VOLUMES, each independently verified with translator T. Bailey Saunders (1860-1928) confirmed on its bibrec page: (1) 'The Wisdom of Life' -- ID 10741, 234 kB; (2) 'Studies in Pessimism' -- ID 10732, 191 kB (a duplicate/alternate edition also exists at ID 26586, same translator -- prefer 10732 as primary, treat 26586 as redundant); (3) 'Counsels and Maxims' -- ID 10715, 273 kB; (4) 'The Art of Controversy' -- ID 10731, 188 kB; (5) 'On Human Nature' -- ID 10739, 202 kB; (6) 'Religion: A Dialogue, Etc.' -- ID 10833, 188 kB; (7) 'The Art of Literature' -- ID 10714, 229 kB. All seven have Plain Text UTF-8 (accessible) formats and standard PG header/footer markers. This entry's gutenbergId/plaintextUrl point to volume 1 (Wisdom of Life, 10741) as representative; ingestion should pull all seven IDs listed here as separate texts under the Saunders/Schopenhauer umbrella.",
+      "allVolumeIds": {
+        "The Wisdom of Life": 10741,
+        "Studies in Pessimism": 10732,
+        "Studies in Pessimism (duplicate edition, same translator)": 26586,
+        "Counsels and Maxims": 10715,
+        "The Art of Controversy": 10731,
+        "On Human Nature": 10739,
+        "Religion: A Dialogue, Etc.": 10833,
+        "The Art of Literature": 10714
+      }
+    }
+  ],
+  "kierkegaardVerdict": "EXCLUDE for standard full-work translations, with one narrow caveat. Project Gutenberg's Kierkegaard catalog (gutenberg.org/ebooks/author/46682) contains only two entries: a Finnish translation (ID 52109, not applicable) and 'Selections from the Writings of Kierkegaard' translated by Lee M. Hollander, ID 60333 (English). The Hollander volume was originally published in 1923 as University of Texas Bulletin No. 2326 (Comparative Literature Series) -- confirmed via Wikipedia/Wikisource/Internet Archive cross-reference -- making it genuinely and unambiguously public domain (pre-1929), unlike the standard scholarly translations by David Swenson/Walter Lowrie (1936 onward) or Howard/Edna Hong (mid-late 20th century, still under copyright), none of which are on Gutenberg. However, Hollander's book is NOT a set of complete standalone works -- it is a curated anthology of excerpts/abridged large pieces from five texts (Diapsalmata, In Vino Veritas/'The Banquet', Fear and Trembling, Preparation for a Christian Life, The Present Moment), reorganized by the translator for readability. Per the project's hard rule to exclude when status or scope is unclear/not-a-clean-match to the named target, and because no complete, unambiguous, unabridged PD translation of any single standard Kierkegaard work (e.g. a full Fear and Trembling or full Either/Or) exists on Gutenberg, the verdict is EXCLUDE for the corpus's purposes -- with the note that ID 60333 could be considered as a clearly-labeled 'selections/abridged' supplementary text if the project later wants partial Kierkegaard coverage, since its PD status is solid.",
+  "hegelLogicVerdict": "EXCLUDE. Project Gutenberg hosts Hegel's Science of Logic only in the original German ('Wissenschaft der Logik', 2 vols, ebook IDs 6729 and 6834) -- there is no English translation on the platform at all. The historically significant English translation (Johnston & Struthers, 1929, George Allen & Unwin, with Haldane preface) is not hosted by Project Gutenberg in any proofread edition; it exists only as scanned/OCR page images on Internet Archive, and its US public-domain status has not been established or cleared by PG's own rights-review process. The more commonly cited modern English translations (A.V. Miller, 1969; George di Giovanni, Cambridge UP 2010) are both still under copyright. Since no genuinely-verified public-domain English translation of Science of Logic could be confirmed on Gutenberg or via a PG-equivalent standard of clearance, and the project's hard rule states unclear license status defaults to EXCLUDE, this work is excluded from the corpus entirely (no English-language Science of Logic should be ingested)."
+}

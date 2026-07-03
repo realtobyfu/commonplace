@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  /* §13.5 — a reading room for ideas in motion */
+  --color-paper: #f7f6f2; /* cool paper background */
+  --color-ink: #1f2328; /* graphite ink text */
+  --color-structure: #d8d6cf; /* slate structure lines */
+  --color-verdigris: #3e7c6f; /* reserved exclusively for memory state */
+  --color-pin-amber: #b8860b; /* pinned state only */
+
+  --font-corpus: var(--font-newsreader), Georgia, serif;
+  --font-ui: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
