@@ -61,26 +61,31 @@ manifest.
 | Arthur Schopenhauer | *The World as Will and Idea (Vol. 1 of 3)* | R. B. Haldane and J. Kemp | #38427 | 190,615 |
 | Arthur Schopenhauer | *The Wisdom of Life* | T. Bailey Saunders | #10741 | 38,151 |
 | Arthur Schopenhauer | *Studies in Pessimism* | T. Bailey Saunders | #10732 | 30,567 |
-| Arthur Schopenhauer | *Counsels and Maxims* | T. Bailey Saunders | #10715 | 45,501 |
-| Arthur Schopenhauer | *The Art of Controversy* | T. Bailey Saunders | #10731 | 30,143 |
-| Arthur Schopenhauer | *On Human Nature* | T. Bailey Saunders | #10739 | 32,238 |
-| Arthur Schopenhauer | *Religion: A Dialogue, Etc.* | T. Bailey Saunders | #10833 | 29,452 |
-| Arthur Schopenhauer | *The Art of Literature* | T. Bailey Saunders | #10714 | 37,465 |
+| G. W. F. Hegel | *The Logic of Hegel* † | William Wallace | #55108 | 151,199 |
+| G. W. F. Hegel | *Hegel's Philosophy of Mind* † | William Wallace | #39064 | 116,467 |
+| Jean-Jacques Rousseau | *The Social Contract & Discourses* | G. D. H. Cole | #46333 | 123,505 |
+| Jean-Jacques Rousseau | *Emile, or On Education* | Barbara Foxley | #5427 | 251,977 |
 
-**19 works, 1,282,457 words.**
+**18 works, six thinkers, 1,750,806 words.**
+
+† Substitutions: the spec named Sibree's *The Philosophy of History*, which is
+not on Project Gutenberg; Wallace's clearly-PD Encyclopaedia translations
+stand in for Hegel (recorded in `corpus/manifest.json`).
 
 **Exclusions** (license hard rule: if status is unclear, exclude):
 
-- **Hegel** — Sibree's *The Philosophy of History* is not on Project Gutenberg
-  at all (don't confuse it with *Lectures on the History of Philosophy*, a
-  different work), and no public-domain English *Science of Logic* exists in a
-  proofread edition. Candidate substitutes exist on Gutenberg (Wallace's 1892
-  *The Logic of Hegel* #55108, *Hegel's Philosophy of Mind* #39064) but are
-  different works — pending an explicit scope decision.
+- **Hegel, *Science of Logic*** — no public-domain English translation exists
+  in a proofread edition (Johnston & Struthers 1929 is unclear; Miller and di
+  Giovanni are copyrighted).
 - **Kierkegaard** — no complete public-domain English translation of any
   standard work exists on Gutenberg; the standard Swenson/Lowrie and Hong
   translations are still in copyright. (Hollander's 1923 *Selections from the
   Writings of Kierkegaard*, #60333, is genuinely PD but an abridged anthology.)
+- **Rousseau, *The Confessions*** (#3913) — the translation's authorship is
+  unverifiable (the "S. W. Orson" attribution appears to be a metadata error),
+  so its provenance fails the hard rule.
+- **Kaufmann's Nietzsche translations** were requested and rejected — still in
+  copyright; the PD Common/Zimmern/Samuel/Mencken translations stand.
 
 ## Development
 

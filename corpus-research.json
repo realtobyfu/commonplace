@@ -152,14 +152,9 @@
       "notes": "IMPORTANT: There is no single 'Essays of Schopenhauer' Gutenberg ebook -- Saunders' selections were published by PG as SEVEN SEPARATE VOLUMES, each independently verified with translator T. Bailey Saunders (1860-1928) confirmed on its bibrec page: (1) 'The Wisdom of Life' -- ID 10741, 234 kB; (2) 'Studies in Pessimism' -- ID 10732, 191 kB (a duplicate/alternate edition also exists at ID 26586, same translator -- prefer 10732 as primary, treat 26586 as redundant); (3) 'Counsels and Maxims' -- ID 10715, 273 kB; (4) 'The Art of Controversy' -- ID 10731, 188 kB; (5) 'On Human Nature' -- ID 10739, 202 kB; (6) 'Religion: A Dialogue, Etc.' -- ID 10833, 188 kB; (7) 'The Art of Literature' -- ID 10714, 229 kB. All seven have Plain Text UTF-8 (accessible) formats and standard PG header/footer markers. This entry's gutenbergId/plaintextUrl point to volume 1 (Wisdom of Life, 10741) as representative; ingestion should pull all seven IDs listed here as separate texts under the Saunders/Schopenhauer umbrella.",
       "allVolumeIds": {
         "The Wisdom of Life": 10741,
-        "Studies in Pessimism": 10732,
-        "Studies in Pessimism (duplicate edition, same translator)": 26586,
-        "Counsels and Maxims": 10715,
-        "The Art of Controversy": 10731,
-        "On Human Nature": 10739,
-        "Religion: A Dialogue, Etc.": 10833,
-        "The Art of Literature": 10714
-      }
+        "Studies in Pessimism": 10732
+      },
+      "scopeDecision": "2026-07-02: Tobias trimmed the Saunders essays from seven volumes to the two most-read (Wisdom of Life, Studies in Pessimism) — Schopenhauer was 34% of the corpus. Dropped: Counsels and Maxims (10715), The Art of Controversy (10731), On Human Nature (10739), Religion: A Dialogue Etc. (10833), The Art of Literature (10714), duplicate Studies in Pessimism edition (26586)."
     }
   ],
   "kierkegaardVerdict": "EXCLUDE for standard full-work translations, with one narrow caveat. Project Gutenberg's Kierkegaard catalog (gutenberg.org/ebooks/author/46682) contains only two entries: a Finnish translation (ID 52109, not applicable) and 'Selections from the Writings of Kierkegaard' translated by Lee M. Hollander, ID 60333 (English). The Hollander volume was originally published in 1923 as University of Texas Bulletin No. 2326 (Comparative Literature Series) -- confirmed via Wikipedia/Wikisource/Internet Archive cross-reference -- making it genuinely and unambiguously public domain (pre-1929), unlike the standard scholarly translations by David Swenson/Walter Lowrie (1936 onward) or Howard/Edna Hong (mid-late 20th century, still under copyright), none of which are on Gutenberg. However, Hollander's book is NOT a set of complete standalone works -- it is a curated anthology of excerpts/abridged large pieces from five texts (Diapsalmata, In Vino Veritas/'The Banquet', Fear and Trembling, Preparation for a Christian Life, The Present Moment), reorganized by the translator for readability. Per the project's hard rule to exclude when status or scope is unclear/not-a-clean-match to the named target, and because no complete, unambiguous, unabridged PD translation of any single standard Kierkegaard work (e.g. a full Fear and Trembling or full Either/Or) exists on Gutenberg, the verdict is EXCLUDE for the corpus's purposes -- with the note that ID 60333 could be considered as a clearly-labeled 'selections/abridged' supplementary text if the project later wants partial Kierkegaard coverage, since its PD status is solid.",

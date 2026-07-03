@@ -30,14 +30,8 @@ into the repo.
 > a table (model, $/MTok in, $/MTok out, cache write, cache read, batch
 > discount, source URL per row, retrieved date). Research only — no code.
 
-## 3. Gutenberg gap-filling IF Tobias wants Hegel coverage (feeds H7 decision)
+## 3. ~~Gutenberg gap-filling for Hegel~~ (done 2026-07-02)
 
-> In /Users/realtobyfu/Documents/Commonplace/corpus-research.json, Hegel was
-> excluded because Sibree's Philosophy of History is not on Project
-> Gutenberg. Verify the two candidate substitutes on gutenberg.org: "The
-> Logic of Hegel" trans. William Wallace (#55108) and "Hegel's Philosophy of
-> Mind" trans. Wallace (#39064) — confirm translator, publication year
-> (pre-1929), working plaintext URL, and standard START/END markers, exactly
-> like the existing entries in corpus-research.json. Append them to that
-> file's works array with verdict SUBSTITUTE and a note that they are
-> different works than the spec named. Do not modify any other file.
+Handled by a background agent: Hegel (Wallace substitutes) and Rousseau were
+verified into `corpus-research-additions.json` per Tobias's scope decisions —
+see `docs/decisions.md` "Corpus scope amendments".

@@ -56,6 +56,7 @@ const AUTHOR_DISPLAY: Record<string, string> = {
   schopenhauer: "Arthur Schopenhauer",
   hegel: "G. W. F. Hegel",
   kierkegaard: "Søren Kierkegaard",
+  rousseau: "Jean-Jacques Rousseau",
 };
 
 function slugify(title: string): string {
@@ -125,6 +126,7 @@ function expandJobs(research: Research) {
     gutenbergId: number;
     url: string;
     licenseNote: string;
+    substitution?: string;
   }> = [];
   const exclusions: ManifestExclusion[] = [];
 
@@ -161,6 +163,7 @@ function expandJobs(research: Research) {
       gutenbergId: work.gutenbergId,
       url: work.plaintextUrl,
       licenseNote: work.licenseBasis,
+      ...(work.verdict === "SUBSTITUTE" ? { substitution: work.notes } : {}),
     });
   }
   return { jobs, exclusions };
@@ -171,6 +174,15 @@ async function main() {
   const research: Research = JSON.parse(
     await readFile(path.join(root, "corpus-research.json"), "utf8"),
   );
+  // later scope amendments (Hegel substitutes, Rousseau) live in a second file
+  try {
+    const additions: Research = JSON.parse(
+      await readFile(path.join(root, "corpus-research-additions.json"), "utf8"),
+    );
+    research.works.push(...additions.works);
+  } catch {
+    // no additions file — the original research list stands alone
+  }
   const { jobs, exclusions } = expandJobs(research);
 
   const manifestWorks: ManifestWork[] = [];
@@ -197,6 +209,7 @@ async function main() {
       licenseNote: job.licenseNote,
       wordCount,
       file: path.relative(root, file),
+      ...(job.substitution ? { substitution: job.substitution } : {}),
     });
 
     // be polite to Gutenberg

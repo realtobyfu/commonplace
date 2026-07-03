@@ -1,0 +1,55 @@
+{
+  "verifiedAt": "2026-07-02",
+  "works": [
+    {
+      "author": "hegel",
+      "title": "The Logic of Hegel",
+      "translator": "William Wallace",
+      "gutenbergId": 55108,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/55108/pg55108.txt",
+      "licenseBasis": "Translation first published by Oxford University Press, 1892 (2nd ed., revised and augmented) — public domain in the USA (pre-1929). Gutenberg edition released 2017, marked public domain in the USA.",
+      "verdict": "SUBSTITUTE",
+      "notes": "This is NOT the Sibree translation of Hegel's 'Philosophy of History' that the original spec named — it is William Wallace's translation of Part I ('Logic') of Hegel's Encyclopaedia of the Philosophical Sciences, also known as the 'Encyclopaedia Logic' or 'Shorter Logic' (2nd ed., 1892, Oxford). Verified directly against the plaintext: title page reads 'THE LOGIC OF HEGEL / TRANSLATED FROM THE ENCYCLOPAEDIA OF THE PHILOSOPHICAL SCIENCES / WILLIAM WALLACE, M.A, LL.D. ... SECOND EDITION, REVISED AND AUGMENTED / OXFORD UNIVERSITY PRESS / 1892'. Standard modern Gutenberg header/footer present: '*** START OF THE PROJECT GUTENBERG EBOOK THE LOGIC OF HEGEL ***' and matching '*** END OF ... ***' footer (not the older 'End of Project Gutenberg's ...' form). Plaintext URL fetched successfully (HTTP 200, ~938KB). Recommend substituting this for the Sibree work if a Hegel logic/encyclopaedia text is desired; flag to product/editorial that this changes the work's scope from philosophy-of-history to logic/metaphysics."
+    },
+    {
+      "author": "hegel",
+      "title": "Hegel's Philosophy of Mind",
+      "translator": "William Wallace",
+      "gutenbergId": 39064,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/39064/pg39064.txt",
+      "licenseBasis": "Translation first published by Clarendon Press (Oxford), 1894 — public domain in the USA (pre-1929). Gutenberg edition released 2012, marked public domain in the USA.",
+      "verdict": "SUBSTITUTE",
+      "notes": "This is NOT the Sibree 'Philosophy of History' originally specified — it is William Wallace's translation of Part III of Hegel's Encyclopaedia of the Philosophical Sciences ('Philosophy of Mind'/'Philosophy of Spirit'), with five introductory essays by Wallace. Verified directly against plaintext: title page reads 'Hegel's Philosophy of Mind / By Georg Wilhelm Friedrich Hegel / Translated From The Encyclopaedia of the Philosophical Sciences / With Five Introductory Essays / By William Wallace, M.A., LL.D. ... Oxford / Clarendon Press / 1894'. Standard modern Gutenberg header/footer present: '*** START OF THE PROJECT GUTENBERG EBOOK HEGEL'S PHILOSOPHY OF MIND ***' and matching '*** END OF ... ***' footer. Plaintext URL fetched successfully (HTTP 200, ~744KB). Companion volume to #55108 (same translator/series); together the two Wallace volumes cover Encyclopaedia Parts I and III but do not include Sibree's separate 'Lectures on the Philosophy of History' text — that would need to be sourced separately if still wanted."
+    },
+    {
+      "author": "rousseau",
+      "title": "The Social Contract & Discourses",
+      "translator": "G. D. H. Cole",
+      "gutenbergId": 46333,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/46333/pg46333.txt",
+      "licenseBasis": "Translation first published in Everyman's Library (J. M. Dent & Sons / E. P. Dutton & Co.), 1913, as Everyman's Library #660 — public domain in the USA (pre-1929). Gutenberg edition released July 19, 2014, marked public domain in the USA.",
+      "verdict": "INCLUDE",
+      "notes": "Confirmed correct Gutenberg ID (#46333). Title page explicitly credits: 'ROUSSEAU'S SOCIAL CONTRACT, ETC. / Translated with Introduction by G.D.H. Cole, Fellow of Magdalen College, Oxford', within the Everyman's Library series edited by Ernest Rhys. Volume contains The Social Contract (Books I-IV) plus the Discourses, including the Discourse on the Arts and Sciences and the Discourse on (the Origin of) Inequality, and the Discourse on Political Economy — confirmed via table of contents in the plaintext. Standard modern Gutenberg header/footer present: '*** START OF THE PROJECT GUTENBERG EBOOK THE SOCIAL CONTRACT & DISCOURSES ***' / matching '*** END OF ... ***' footer. Plaintext URL fetched successfully (HTTP 200, ~742KB). Note for corpus entry: this single volume should be labeled/split so downstream consumers know it bundles multiple distinct works (Social Contract + 3 Discourses), not just the Social Contract alone."
+    },
+    {
+      "author": "rousseau",
+      "title": "Emile, or On Education",
+      "translator": "Barbara Foxley",
+      "gutenbergId": 5427,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/5427/pg5427.txt",
+      "licenseBasis": "Translation first published in Everyman's Library (J. M. Dent, London), 1911 — public domain in the USA (pre-1929). Gutenberg edition released April 1, 2004, marked public domain in the USA.",
+      "verdict": "INCLUDE",
+      "notes": "Confirmed correct Gutenberg ID (#5427) and translator. The Gutenberg bibrec page itself does not list a translator field, but the plaintext front matter explicitly states 'EMILE / By Jean-Jacques Rousseau / Translated by Barbara Foxley', matching the well-documented 1911 Everyman's Library edition (Dent, London; reprinted 1948, 1966, etc.). Standard modern Gutenberg header/footer present: '*** START OF THE PROJECT GUTENBERG EBOOK EMILE ***' / matching '*** END OF ... ***' footer. Plaintext URL fetched successfully (HTTP 200, ~1.41MB)."
+    },
+    {
+      "author": "rousseau",
+      "title": "The Confessions of Jean Jacques Rousseau",
+      "translator": null,
+      "gutenbergId": 3913,
+      "plaintextUrl": "https://www.gutenberg.org/cache/epub/3913/pg3913.txt",
+      "licenseBasis": "UNCLEAR. Text is the 1903 Aldus Society (London) private printing; Project Gutenberg's own bibrec page lists no translator, and the plaintext front matter names no translator anywhere. Gutenberg's PD-in-USA copyright status field is satisfied (pre-1929 publication), but the underlying translation's authorship/provenance cannot be confirmed from primary sources.",
+      "verdict": "EXCLUDE",
+      "notes": "Per project hard rule (unclear license/provenance = EXCLUDE), this fails verification. Findings: Gutenberg ebook #3913 ('Complete') plaintext confirms HTTP 200 and standard modern header/footer ('*** START OF THE PROJECT GUTENBERG EBOOK THE CONFESSIONS OF JEAN JACQUES ROUSSEAU — COMPLETE ***' / matching END). Title page reads only 'Privately Printed for the Members of the Aldus Society — London, 1903'; no translator is named on the title page, in the front matter, or in the Gutenberg bibrec 'Credits'/'Note' fields (only 'Produced by David Widger' for the digital edition, and an introduction signed 'S. W. ORSON', dated November 1896 — predating the 1903 printing, meaning the intro was recycled from an earlier edition). Wikisource's structured metadata for the same 1903 Aldus text attributes translation to 'Samuel William Orson,' but this appears to be community-added metadata conflating the introduction's author with the translator — the primary Gutenberg/Aldus text itself never makes that claim, and Wikipedia's article on the Confessions separately notes the commonly-circulated English Gutenberg text is an 'expurgated' 19th-century anonymous translation lineage (traceable to circa-1783/1790 anonymous English editions), independent of Orson. Given the conflicting/unverifiable attribution, this does not meet the bar for a confirmed translator or clean provenance. EXCLUDE per hard rule; do not stretch to INCLUDE despite PD-by-date status being otherwise satisfied."
+    }
+  ]
+}

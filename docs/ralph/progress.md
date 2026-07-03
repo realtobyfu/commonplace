@@ -43,3 +43,16 @@ Good and Evil (aphorism) 167 passages p50 491, Critique of Pure Reason
 (contents pages, translator prefaces, Jowett's long introductions) currently
 chunks like body text; a handful of single-paragraph passages exceed the soft
 cap. STOPPED at H1.
+
+## P1 amendment — corpus rebalance (2026-07-02)
+
+Tobias reshaped the corpus at the phase boundary: Schopenhauer trimmed from 8
+works to 3 (was 34% of the corpus), Hegel added via Wallace's clearly-PD
+Encyclopaedia translations (flagged as substitutions), Rousseau added (Cole's
+Social Contract & Discourses, Foxley's Emile). A second background agent
+verified all five candidate IDs against bibrec pages and title pages
+(`corpus-research-additions.json`); Rousseau's Confessions failed the
+provenance check and is excluded. Kaufmann's Nietzsche was requested and
+rejected (copyright). Result: 18 works, six thinkers, 1,750,806 words —
+the "six thinkers" promise line holds again. Full reasoning in
+docs/decisions.md "Corpus scope amendments".

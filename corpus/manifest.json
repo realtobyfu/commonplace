@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-07-03T05:26:21.490Z",
+  "fetchedAt": "2026-07-03T06:42:32.974Z",
   "researchVerifiedAt": "2026-07-02",
   "works": [
     {
@@ -157,59 +157,50 @@
       "file": "corpus/schopenhauer/studies-in-pessimism.txt"
     },
     {
-      "author": "schopenhauer",
-      "authorDisplay": "Arthur Schopenhauer",
-      "title": "Counsels and Maxims",
-      "translator": "T. Bailey Saunders",
-      "gutenbergId": 10715,
-      "sourceUrl": "https://www.gutenberg.org/cache/epub/10715/pg10715.txt",
-      "licenseNote": "Public domain in the USA; Saunders selections/translations pub. 1889-1897 (Swan Sonnenschein), PG release 2004-01-01",
-      "wordCount": 45501,
-      "file": "corpus/schopenhauer/counsels-and-maxims.txt"
+      "author": "hegel",
+      "authorDisplay": "G. W. F. Hegel",
+      "title": "The Logic of Hegel",
+      "translator": "William Wallace",
+      "gutenbergId": 55108,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/55108/pg55108.txt",
+      "licenseNote": "Translation first published by Oxford University Press, 1892 (2nd ed., revised and augmented) — public domain in the USA (pre-1929). Gutenberg edition released 2017, marked public domain in the USA.",
+      "wordCount": 151199,
+      "file": "corpus/hegel/the-logic-of-hegel.txt",
+      "substitution": "This is NOT the Sibree translation of Hegel's 'Philosophy of History' that the original spec named — it is William Wallace's translation of Part I ('Logic') of Hegel's Encyclopaedia of the Philosophical Sciences, also known as the 'Encyclopaedia Logic' or 'Shorter Logic' (2nd ed., 1892, Oxford). Verified directly against the plaintext: title page reads 'THE LOGIC OF HEGEL / TRANSLATED FROM THE ENCYCLOPAEDIA OF THE PHILOSOPHICAL SCIENCES / WILLIAM WALLACE, M.A, LL.D. ... SECOND EDITION, REVISED AND AUGMENTED / OXFORD UNIVERSITY PRESS / 1892'. Standard modern Gutenberg header/footer present: '*** START OF THE PROJECT GUTENBERG EBOOK THE LOGIC OF HEGEL ***' and matching '*** END OF ... ***' footer (not the older 'End of Project Gutenberg's ...' form). Plaintext URL fetched successfully (HTTP 200, ~938KB). Recommend substituting this for the Sibree work if a Hegel logic/encyclopaedia text is desired; flag to product/editorial that this changes the work's scope from philosophy-of-history to logic/metaphysics."
     },
     {
-      "author": "schopenhauer",
-      "authorDisplay": "Arthur Schopenhauer",
-      "title": "The Art of Controversy",
-      "translator": "T. Bailey Saunders",
-      "gutenbergId": 10731,
-      "sourceUrl": "https://www.gutenberg.org/cache/epub/10731/pg10731.txt",
-      "licenseNote": "Public domain in the USA; Saunders selections/translations pub. 1889-1897 (Swan Sonnenschein), PG release 2004-01-01",
-      "wordCount": 30143,
-      "file": "corpus/schopenhauer/the-art-of-controversy.txt"
+      "author": "hegel",
+      "authorDisplay": "G. W. F. Hegel",
+      "title": "Hegel's Philosophy of Mind",
+      "translator": "William Wallace",
+      "gutenbergId": 39064,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/39064/pg39064.txt",
+      "licenseNote": "Translation first published by Clarendon Press (Oxford), 1894 — public domain in the USA (pre-1929). Gutenberg edition released 2012, marked public domain in the USA.",
+      "wordCount": 116467,
+      "file": "corpus/hegel/hegel-s-philosophy-of-mind.txt",
+      "substitution": "This is NOT the Sibree 'Philosophy of History' originally specified — it is William Wallace's translation of Part III of Hegel's Encyclopaedia of the Philosophical Sciences ('Philosophy of Mind'/'Philosophy of Spirit'), with five introductory essays by Wallace. Verified directly against plaintext: title page reads 'Hegel's Philosophy of Mind / By Georg Wilhelm Friedrich Hegel / Translated From The Encyclopaedia of the Philosophical Sciences / With Five Introductory Essays / By William Wallace, M.A., LL.D. ... Oxford / Clarendon Press / 1894'. Standard modern Gutenberg header/footer present: '*** START OF THE PROJECT GUTENBERG EBOOK HEGEL'S PHILOSOPHY OF MIND ***' and matching '*** END OF ... ***' footer. Plaintext URL fetched successfully (HTTP 200, ~744KB). Companion volume to #55108 (same translator/series); together the two Wallace volumes cover Encyclopaedia Parts I and III but do not include Sibree's separate 'Lectures on the Philosophy of History' text — that would need to be sourced separately if still wanted."
     },
     {
-      "author": "schopenhauer",
-      "authorDisplay": "Arthur Schopenhauer",
-      "title": "On Human Nature",
-      "translator": "T. Bailey Saunders",
-      "gutenbergId": 10739,
-      "sourceUrl": "https://www.gutenberg.org/cache/epub/10739/pg10739.txt",
-      "licenseNote": "Public domain in the USA; Saunders selections/translations pub. 1889-1897 (Swan Sonnenschein), PG release 2004-01-01",
-      "wordCount": 32238,
-      "file": "corpus/schopenhauer/on-human-nature.txt"
+      "author": "rousseau",
+      "authorDisplay": "Jean-Jacques Rousseau",
+      "title": "The Social Contract & Discourses",
+      "translator": "G. D. H. Cole",
+      "gutenbergId": 46333,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/46333/pg46333.txt",
+      "licenseNote": "Translation first published in Everyman's Library (J. M. Dent & Sons / E. P. Dutton & Co.), 1913, as Everyman's Library #660 — public domain in the USA (pre-1929). Gutenberg edition released July 19, 2014, marked public domain in the USA.",
+      "wordCount": 123505,
+      "file": "corpus/rousseau/the-social-contract-discourses.txt"
     },
     {
-      "author": "schopenhauer",
-      "authorDisplay": "Arthur Schopenhauer",
-      "title": "Religion: A Dialogue, Etc.",
-      "translator": "T. Bailey Saunders",
-      "gutenbergId": 10833,
-      "sourceUrl": "https://www.gutenberg.org/cache/epub/10833/pg10833.txt",
-      "licenseNote": "Public domain in the USA; Saunders selections/translations pub. 1889-1897 (Swan Sonnenschein), PG release 2004-01-01",
-      "wordCount": 29452,
-      "file": "corpus/schopenhauer/religion-a-dialogue-etc.txt"
-    },
-    {
-      "author": "schopenhauer",
-      "authorDisplay": "Arthur Schopenhauer",
-      "title": "The Art of Literature",
-      "translator": "T. Bailey Saunders",
-      "gutenbergId": 10714,
-      "sourceUrl": "https://www.gutenberg.org/cache/epub/10714/pg10714.txt",
-      "licenseNote": "Public domain in the USA; Saunders selections/translations pub. 1889-1897 (Swan Sonnenschein), PG release 2004-01-01",
-      "wordCount": 37465,
-      "file": "corpus/schopenhauer/the-art-of-literature.txt"
+      "author": "rousseau",
+      "authorDisplay": "Jean-Jacques Rousseau",
+      "title": "Emile, or On Education",
+      "translator": "Barbara Foxley",
+      "gutenbergId": 5427,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/5427/pg5427.txt",
+      "licenseNote": "Translation first published in Everyman's Library (J. M. Dent, London), 1911 — public domain in the USA (pre-1929). Gutenberg edition released April 1, 2004, marked public domain in the USA.",
+      "wordCount": 251977,
+      "file": "corpus/rousseau/emile-or-on-education.txt"
     }
   ],
   "exclusions": [
@@ -222,7 +213,12 @@
       "author": "hegel",
       "title": "Science of Logic",
       "reason": "Unclear / no verified public-domain English translation available"
+    },
+    {
+      "author": "rousseau",
+      "title": "The Confessions of Jean Jacques Rousseau",
+      "reason": "UNCLEAR. Text is the 1903 Aldus Society (London) private printing; Project Gutenberg's own bibrec page lists no translator, and the plaintext front matter names no translator anywhere. Gutenberg's PD-in-USA copyright status field is satisfied (pre-1929 publication), but the underlying translation's authorship/provenance cannot be confirmed from primary sources."
     }
   ],
-  "totalWords": 1282457
+  "totalWords": 1750806
 }
