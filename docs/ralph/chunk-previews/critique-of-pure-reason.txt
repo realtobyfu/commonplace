@@ -1,0 +1,141 @@
+$ tsx scripts/chunk-preview.ts --work critique --sample 10
+# Critique of Pure Reason (kant) — strategy: treatise
+441 passages | tokens min 17 / p50 1033 / p90 1179 / max 1974 | mean 968
+
+─── passage 0 · 233 tokens · (no heading) ───
+[Illustration]
+
+
+The Critique of Pure Reason
+
+By Immanuel Kant
+
+Translated by J. M. D. Meiklejohn
+
+
+Contents
+
+ Preface to the First Edition (1781)
+
+ Preface to the Second Edition (1787)
+
+ Introduction
+
+ I. Of the difference between Pure and Empirical Knowledge
+
+ II. The Human Intellect, even in an Unphilosophical State, is in
+ Possession of Certain Cognitions “à priori”.
+
+ III. Philosophy stands in need of a Science which shall Determine the
+ Possibility, Principles, and Extent of Human Knowledge “à priori”
+
+ IV. Of the Difference Between Analytical and Synthetical Judgements.
+
+ V. In all Theo […]
+
+─── passage 44 · 905 tokens · FIRST PART. TRANSCENDENTAL ÆSTHETIC. ───
+(a) Space does not represent any property of objects as things in
+themselves, nor does it represent them in their relations to each
+other; in other words, space does not represent to us any determination
+of objects such as attaches to the objects themselves, and would
+remain, even though all subjective conditions of the intuition were
+abstracted. For neither absolute nor relative determinations of objects
+can be intuited prior to the existence of the things to which they
+belong, and therefore not à priori.
+
+(b) Space is nothing else than the form of all phenomena of the
+external sense, that is […]
+
+─── passage 88 · 920 tokens · TABLE OF THE CATEGORIES ───
+ [18] The tedious doctrine of the four syllogistic figures concerns
+ only categorical syllogisms; and although it is nothing more than
+ an artifice by surreptitiously introducing immediate conclusions
+ (consequentiae immediatae) among the premises of a pure syllogism,
+ to give rise to an appearance of more modes of drawing a conclusion
+ than that in the first figure, the artifice would not have had much
+ success, had not its authors succeeded in bringing categorical
+ judgements into exclusive respect, as those to which all others must
+ be referred—a doctrine, however, which, according to § 5,  […]
+
+─── passage 132 · 700 tokens · PROOF. ───
+(That all phenomena in the succession of time are only changes, that
+is, a successive being and non-being of the determinations of
+substance, which is permanent; consequently that a being of substance
+itself which follows on the non-being thereof, or a non-being of
+substance which follows on the being thereof, in other words, that the
+origin or extinction of substance itself, is impossible—all this has
+been fully established in treating of the foregoing principle. This
+principle might have been expressed as follows: “All alteration
+(succession) of phenomena is merely change”; for the changes o […]
+
+─── passage 176 · 1022 tokens · APPENDIX ───
+Before constructing any objective judgement, we compare the conceptions
+that are to be placed in the judgement, and observe whether there
+exists identity (of many representations in one conception), if a
+general judgement is to be constructed, or difference, if a particular;
+whether there is agreement when affirmative; and opposition when
+negative judgements are to be constructed, and so on. For this reason
+we ought to call these conceptions, conceptions of comparison
+(conceptus comparationis). But as, when the question is not as to the
+logical form, but as to the content of conceptions, that  […]
+
+─── passage 220 · 1062 tokens · TRANSCENDENTAL DIALECTIC—BOOK I—OF THE CONCEPTIONS OF PURE REASON. ───
+ [46] There are some who think they have done enough to establish a new
+ possibility in the mode of the existence of souls, when they have
+ shown that there is no contradiction in their hypotheses on this
+ subject. Such are those who affirm the possibility of thought—of which
+ they have no other knowledge than what they derive from its use in
+ connecting empirical intuitions presented in this our human life—after
+ this life has ceased. But it is very easy to embarrass them by the
+ introduction of counter-possibilities, which rest upon quite as good a
+ foundation. Such, for example, is the poss […]
+
+─── passage 264 · 1008 tokens · ON THE ANTITHESIS. ───
+Both Epicurus and Plato assert more in their systems than they know.
+The former encourages and advances science—although to the prejudice of
+the practical; the latter presents us with excellent principles for the
+investigation of the practical, but, in relation to everything
+regarding which we can attain to speculative cognition, permits reason
+to append idealistic explanations of natural phenomena, to the great
+injury of physical investigation.
+
+3. In regard to the third motive for the preliminary choice of a party
+in this war of assertions, it seems very extraordinary that empiricism
+should  […]
+
+─── passage 308 · 1122 tokens · ON THE ANTITHESIS. ───
+Concluding Remarks on the Antinomy of Pure Reason.
+
+So long as the object of our rational conceptions is the totality of
+conditions in the world of phenomena, and the satisfaction, from this
+source, of the requirements of reason, so long are our ideas
+transcendental and cosmological. But when we set the
+unconditioned—which is the aim of all our inquiries—in a sphere which
+lies out of the world of sense and possible experience, our ideas
+become transcendent. They are then not merely serviceable towards the
+completion of the exercise of reason (which remains an idea, never
+executed, but always t […]
+
+─── passage 352 · 943 tokens · ON THE ANTITHESIS. ───
+The ideas of pure reason cannot be, of themselves and in their own
+nature, dialectical; it is from their misemployment alone that
+fallacies and illusions arise. For they originate in the nature of
+reason itself, and it is impossible that this supreme tribunal for all
+the rights and claims of speculation should be itself undeserving of
+confidence and promotive of error. It is to be expected, therefore,
+that these ideas have a genuine and legitimate aim. It is true, the mob
+of sophists raise against reason the cry of inconsistency and
+contradiction, and affect to despise the government of that f […]
+
+─── passage 396 · 1085 tokens · ON THE ANTITHESIS. ───
+There is, accordingly, no proper polemic in the sphere of pure reason.
+Both parties beat the air and fight with their own shadows, as they
+pass beyond the limits of nature, and can find no tangible point of
+attack—no firm footing for their dogmatical conflict. Fight as
+vigorously as they may, the shadows which they hew down, immediately
+start up again, like the heroes in Walhalla, and renew the bloodless
+and unceasing contest.
+
+But neither can we admit that there is any proper sceptical employment
+of pure reason, such as might be based upon the principle of neutrality
+in all speculative disput […]

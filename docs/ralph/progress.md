@@ -28,3 +28,18 @@ Science of Logic) and Kierkegaard (no complete PD translation). This leaves
 4 thinkers, not 6 — flagged to Tobias since the draft promise line says "six
 thinkers" (H7) and Wallace's PD Hegel translations exist as possible
 substitutes.
+
+## P2 — Chunking (2026-07-02)
+
+Structure-aware chunker in `lib/chunking/` with the three §9.2 strategies
+(dialogue / aphorism / treatise) selected per author from the pack config;
+passages carry ordinal, char offsets, heading breadcrumb, and estimated token
+count (chars/4). Seven unit tests cover heading breaks, soft-cap overlap,
+aphorism merging, and speaker-turn breaking. Preview CLI (`pnpm chunks --work
+republic --sample 10`) generated review artifacts for three genres in
+`docs/ralph/chunk-previews/`: Republic (dialogue) 392 passages p50 818, Beyond
+Good and Evil (aphorism) 167 passages p50 491, Critique of Pure Reason
+(treatise) 441 passages p50 1033. Known review items for H1: front matter
+(contents pages, translator prefaces, Jowett's long introductions) currently
+chunks like body text; a handful of single-paragraph passages exceed the soft
+cap. STOPPED at H1.
