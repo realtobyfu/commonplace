@@ -10,3 +10,6 @@ const { greet } = proxyActivities<typeof activities>({
 export async function helloWorld(name: string): Promise<string> {
   return await greet(name);
 }
+
+export { ingestPack, ingestWork } from "./ingest";
+export type { IngestPackInput, IngestWorkInput } from "./ingest";

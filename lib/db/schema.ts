@@ -8,6 +8,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
   vector,
 } from "drizzle-orm/pg-core";
@@ -21,30 +22,39 @@ export const workStatus = pgEnum("work_status", [
   "failed",
 ]);
 
-export const works = pgTable("works", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  packId: text("pack_id").notNull(),
-  author: text("author").notNull(),
-  title: text("title").notNull(),
-  translator: text("translator"),
-  licenseNote: text("license_note").notNull(),
-  wordCount: integer("word_count").notNull().default(0),
-  status: workStatus("status").notNull().default("pending"),
-});
+export const works = pgTable(
+  "works",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    packId: text("pack_id").notNull(),
+    author: text("author").notNull(),
+    title: text("title").notNull(),
+    translator: text("translator"),
+    licenseNote: text("license_note").notNull(),
+    sourceFile: text("source_file").notNull(),
+    wordCount: integer("word_count").notNull().default(0),
+    status: workStatus("status").notNull().default("pending"),
+  },
+  (t) => [uniqueIndex("works_pack_title_idx").on(t.packId, t.author, t.title)],
+);
 
-export const passages = pgTable("passages", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  workId: uuid("work_id")
-    .notNull()
-    .references(() => works.id),
-  ordinal: integer("ordinal").notNull(),
-  text: text("text").notNull(),
-  heading: text("heading"),
-  charStart: integer("char_start").notNull(),
-  charEnd: integer("char_end").notNull(),
-  tokenCount: integer("token_count").notNull(),
-  embedding: vector("embedding", { dimensions: 768 }),
-});
+export const passages = pgTable(
+  "passages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workId: uuid("work_id")
+      .notNull()
+      .references(() => works.id),
+    ordinal: integer("ordinal").notNull(),
+    text: text("text").notNull(),
+    heading: text("heading"),
+    charStart: integer("char_start").notNull(),
+    charEnd: integer("char_end").notNull(),
+    tokenCount: integer("token_count").notNull(),
+    embedding: vector("embedding", { dimensions: 768 }),
+  },
+  (t) => [uniqueIndex("passages_work_ordinal_idx").on(t.workId, t.ordinal)],
+);
 
 export const summaries = pgTable("summaries", {
   passageId: uuid("passage_id")

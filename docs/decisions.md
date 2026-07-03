@@ -50,9 +50,16 @@ size, staleness weighting, permission-before-large-loads.
 
 ## H4 — Ingestion model
 
-**Status: OPEN.** Decided by the §16 blind eval (P3) before full ingestion.
-Candidate routes updated by the provider amendment below: Ollama local vs.
-Groq small vs. Groq large (was: Ollama vs. Haiku vs. Sonnet).
+**Status: DECIDED 2026-07-02 (Tobias).** Decided by cost fiat, not the §16
+blind eval — "let's just use the cheaper option honestly." With Groq's
+pricing, the entire model-comparison question stopped being worth its build
+time: full-corpus ingestion on `llama-3.1-8b-instant` costs ~$0.30 and the
+priciest job (synthesis on `gpt-oss-120b`) is ~1¢ a turn. Routes: summaries →
+Groq `llama-3.1-8b-instant`; router → `openai/gpt-oss-20b`; concept cards,
+starter prompts, synthesis → `openai/gpt-oss-120b`; embeddings → Ollama
+`nomic-embed-text` (Groq has no embeddings endpoint). The §16 eval script is
+waived; P3 is folded into P4. If summary quality disappoints at H2 review,
+the eval can be resurrected — routing is config.
 
 ## Provider amendment — Groq replaces the Anthropic API (2026-07-02, Tobias)
 

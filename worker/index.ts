@@ -1,3 +1,9 @@
+try {
+  process.loadEnvFile(".env");
+} catch {
+  // no .env yet — defaults and shell env apply
+}
+
 import { NativeConnection, Worker } from "@temporalio/worker";
 import { OpenTelemetryActivityInboundInterceptor } from "@temporalio/interceptors-opentelemetry/lib/worker";
 import { startOtel } from "../lib/otel";
