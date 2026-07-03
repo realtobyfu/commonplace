@@ -56,3 +56,21 @@ provenance check and is excluded. Kaufmann's Nietzsche was requested and
 rejected (copyright). Result: 18 works, six thinkers, 1,750,806 words —
 the "six thinkers" promise line holds again. Full reasoning in
 docs/decisions.md "Corpus scope amendments".
+
+## P2 close-out — H1 recorded, chunker amendments (2026-07-02)
+
+H1 verdict: per-author strategies stay. Two amendments implemented: (1) front
+matter never becomes passages — title-page lines and list-shaped contents
+blocks are dropped until real prose appears, and sections whose headings match
+per-author `skipHeadings` patterns (Jowett's "Introduction and Analysis",
+editor introductions) are skipped entirely; (2) passages still over the soft
+cap are sentence-split with exact offsets preserved. Effect on previews:
+Republic 392 → 198 passages (half the file was Jowett commentary), all works'
+max token counts now within cap × 1.25. 10 unit tests green. Also recorded:
+provider amendment replacing the Anthropic API with Groq (cost) — background
+agent's live-verified catalog/pricing in docs/ralph/groq-research.md says
+full-corpus ingestion lands under $1 and a conversation turn ~1¢; Groq has no
+embeddings endpoint, so Ollama keeps embeddings. Kimi K2 is deprecated on
+Groq; GPT-OSS models are the current caching-capable tier. NOTE: .env.example
+still says ANTHROPIC_API_KEY — swap to GROQ_API_KEY manually (agent's .env*
+access is restricted).

@@ -19,16 +19,12 @@ into the repo.
 > shape {verifiedAt, proposals: [{id, title, authors[], status, swiftVersion,
 > rawUrl, notes}]}. Research only — do not write any project code.
 
-## 2. Current Anthropic + Voyage pricing table (feeds §15 cost meter, P3+)
+## 2. ~~Anthropic + Voyage pricing~~ (superseded 2026-07-02)
 
-> Research current API pricing needed by the Commonplace cost meter. From
-> docs.anthropic.com (and voyageai.com for embeddings): per-MTok input/output
-> prices for claude-haiku-4-5 and claude-sonnet-5 (or whatever the current
-> cheap/frontier tier names are), prompt-caching write/read multipliers,
-> Message Batches API discount, and voyage-3-lite embedding pricing. Write
-> /Users/realtobyfu/Documents/Commonplace/docs/ralph/pricing-research.md with
-> a table (model, $/MTok in, $/MTok out, cache write, cache read, batch
-> discount, source URL per row, retrieved date). Research only — no code.
+Tobias replaced the Anthropic API with Groq for all paid jobs (see
+`docs/decisions.md` "Provider amendment"). A background agent researched the
+live Groq catalog, pricing, rate limits, caching, and per-job recommendations
+into `docs/ralph/groq-research.md`.
 
 ## 3. ~~Gutenberg gap-filling for Hegel~~ (done 2026-07-02)
 

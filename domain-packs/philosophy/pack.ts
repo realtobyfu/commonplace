@@ -14,10 +14,29 @@ export const philosophyPack: DomainPack = {
     "A commonplace book that reads for you — six thinkers, one working memory, watch it think.",
   sources: [], // populated from corpus/manifest.json after P1 fetch
   chunking: {
-    default: { strategy: "treatise", targetTokens: 1000, maxTokens: 1200, overlapParagraphs: 1 },
+    default: {
+      strategy: "treatise",
+      targetTokens: 1000,
+      maxTokens: 1200,
+      overlapParagraphs: 1,
+      skipHeadings: ["^CONTENTS", "^INDEX", "^TRANSLATOR'?S"],
+    },
     perAuthor: {
-      plato: { strategy: "dialogue", targetTokens: 750, maxTokens: 900 },
-      nietzsche: { strategy: "aphorism", targetTokens: 600, maxTokens: 1200 },
+      plato: {
+        strategy: "dialogue",
+        targetTokens: 750,
+        maxTokens: 900,
+        // Jowett prefixes each dialogue with his own long commentary
+        skipHeadings: ["^CONTENTS", "^INTRODUCTION( AND ANALYSIS)?\\b", "^ANALYSIS"],
+      },
+      nietzsche: {
+        strategy: "aphorism",
+        targetTokens: 600,
+        maxTokens: 1200,
+        // editor/translator front matter (e.g. Frau Förster-Nietzsche's
+        // introduction to Zarathustra); Nietzsche's own prefaces stay
+        skipHeadings: ["^CONTENTS", "^INTRODUCTION BY", "^TRANSLATOR'?S"],
+      },
     },
   },
   vocabulary: {

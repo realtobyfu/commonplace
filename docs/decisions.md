@@ -25,9 +25,17 @@ Amendments to the §8 source list after P1 fetch revealed gaps:
 
 ## H1 — Chunking scheme
 
-**Status: OPEN.** Opens after P2 chunk preview on 3 works. Question: does
-per-author chunking logic (dialogue / aphorism / treatise) earn its complexity
-vs. one general scheme?
+**Status: DECIDED 2026-07-02 (Tobias).** Per-author logic stays — the preview
+distributions showed the three strategies doing genuinely different work
+(Republic exchanges clustering 600–900, Nietzsche aphorisms intact with wide
+natural variance, Kant at the ~1000 treatise target), which one general
+scheme would flatten. Two amendments from the preview review, both accepted:
+(1) front matter — contents pages, title-page lines, and translator
+introductions (Jowett's ~90k-word "Introduction and Analysis") — is skipped
+via per-author `skipHeadings` patterns rather than chunked as body text, so
+translator commentary can never carry an author's provenance chip; (2) single
+paragraphs exceeding the soft cap are split at sentence boundaries instead of
+shipping ~2000-token outliers.
 
 ## H2 — Progress design
 
@@ -43,6 +51,20 @@ size, staleness weighting, permission-before-large-loads.
 ## H4 — Ingestion model
 
 **Status: OPEN.** Decided by the §16 blind eval (P3) before full ingestion.
+Candidate routes updated by the provider amendment below: Ollama local vs.
+Groq small vs. Groq large (was: Ollama vs. Haiku vs. Sonnet).
+
+## Provider amendment — Groq replaces the Anthropic API (2026-07-02, Tobias)
+
+The spec's §5/§15 paid route (Anthropic Haiku/Sonnet) is replaced by **Groq**
+(OpenAI-compatible API, low per-token cost) for all paid jobs: router, concept
+cards, starter prompts, synthesis. Reason: cost — the corpus is 1.75M words
+and frontier-model synthesis pricing dominates the §15 budget. Ollama remains
+the free local route for bulk summaries and embeddings (Groq serves no
+embeddings endpoint). The provider abstraction in `lib/llm/` keeps Anthropic
+re-enableable as config if quality demands it later; `MAX_SPEND_USD` applies
+to Groq spend. Model choices per job come from `docs/ralph/groq-research.md`
+plus the H4 eval.
 
 ## H5 — Interrupt policy
 

@@ -1,0 +1,121 @@
+$ tsx scripts/chunk-preview.ts --work 'logic of hegel' --sample 10
+# The Logic of Hegel (hegel) — strategy: treatise
+288 passages | tokens min 20 / p50 1065 / p90 1187 / max 1442 | mean 999
+
+─── passage 0 · 140 tokens · NOTE ───
+The present volume contains a translation, which has been revised
+throughout and compared with the original, of the Logic as given in the
+first part of Hegel's _Encyclopaedia,_ preceded by a bibliographical
+account of the three editions and extracts from the prefaces of that
+work, and followed by notes and illustrations of a philological rather
+than a philosophical character on the text. This introductory chapter
+and these notes were not included in the previous edition.
+
+The volume containing my Prolegomena is under revision and will be
+issued shortly.
+
+─── passage 28 · 1189 tokens · INTRODUCTION. ───
+13.] Stated in exact terms, such is the origin and development of
+philosophy. But the History of Philosophy gives us the same process
+from an historical and external point of view. The stages in the
+evolution of the Idea there seem to follow each other by accident, and
+to present merely a number of different and unconnected principles,
+which the several systems of philosophy carry out in their own way.
+But it is not so. For these thousands of years the same Architect has
+directed the work: and that Architect is the one living Mind whose
+nature is to think, to bring to self-consciousness what i […]
+
+─── passage 56 · 908 tokens · FIRST ATTITUDE OF THOUGHT TO OBJECTIVITY. ───
+28.] The first of these attitudes of thought is seen in the method
+which has no doubts and no sense of the contradiction in thought, or of
+the hostility of thought against itself. It entertains an unquestioning
+belief that reflection is the means of ascertaining the truth, and of
+bringing the objects before the mind as they really are. And in this
+belief it advances straight upon its objects, takes the materials
+furnished by sense and perception, and reproduces them from itself as
+facts of thought; and then, believing this result to be the truth, the
+method is content. Philosophy in its earlie […]
+
+─── passage 84 · 1350 tokens · SECOND ATTITUDE OF THOUGHT TO OBJECTIVITY. ───
+Both on general grounds, and in the particular case, there are two
+remarks to be made upon the criticism of this exaltation in thought.
+The first remark deals with the question of form. When the exaltation
+is exhibited in a syllogistic process, in the shape of what we call
+_proofs_ of the being of God, these reasonings cannot but start from
+some sort of theory of the world, which makes it an aggregate either
+of contingent facts or of final causes and relations involving design.
+The merely syllogistic thinker may deem this starting-point a solid
+basis and suppose that it remains throughout in t […]
+
+─── passage 112 · 1133 tokens · LOGIC FURTHER DEFINED AND DIVIDED. ───
+(2) Scepticism should not be looked upon merely as a doctrine of doubt.
+It would be more correct to say that the Sceptic has no doubt of his
+point, which is the nothingness of all finite existence. He who only
+doubts still clings to the hope that his doubt may be resolved, and
+that one or other of the definite views, between which he wavers,
+will turn out solid and true. Scepticism properly so called is a
+very different thing: it is complete hopelessness about all which
+understanding counts stable, and the feeling to which it gives birth
+is one of unbroken calmness and inward repose. Such at l […]
+
+─── passage 140 · 901 tokens · B.--QUANTITY. ───
+    Ich häufe ungeheure Zahlen,
+    Gebirge Millionen auf,
+    Ich sesse Zeit auf Zeit
+    Und Welt auf Welt zu Hauf,
+    Und wenn ich von der grausen Höh'
+    Mit Schwindel wieder nach Dir seh:
+    Ist alle Macht der Zahl,
+    Vermehrt zu Tausendmal,
+    Noch nicht ein Theil von Dir.
+
+[I heap up monstrous numbers, mountains of millions; I pile time upon
+time, and world on the top of world; and when from the awful height I
+cast a dizzy look towards Thee, all the power of number, multiplied a
+thousand times, is not yet one part of Thee.]
+
+Here then we meet, in the first place, that continual ex […]
+
+─── passage 168 · 412 tokens · A.--ESSENCE AS GROUND OF EXISTENCE. ───
+The negation of the several matters, which is insisted on in the
+thing no less than their independent existence, occurs in Physics as
+_porosity._ Each of the several matters (colouring matter, odorific
+matter, and if we believe some people, even sound-matter,--not
+excluding caloric, electric matter, &c:) is also negated: and in this
+negation of theirs, or as interpenetrating their pores, we find the
+numerous other independent matters, which, being similarly porous,
+make room in turn for the existence of the rest. Pores are not
+empirical facts; they are figments of the understanding, which uses […]
+
+─── passage 196 · 1192 tokens · C.--ACTUALITY. ───
+The shortcoming thus acknowledged to attach to the content turns out
+at the same time to be a shortcoming in respect of form. Spinoza puts
+substance at the head of his system, and defines it to be the unity
+of thought and extension, without demonstrating how he gets to this
+distinction, or how he traces it back to the unity of substance. The
+further treatment of the subject proceeds in what is called the
+mathematical method. Definitions and axioms are first laid down: after
+them comes a series of theorems, which are proved by an analytical
+reduction of them to these unproved postulates. Althou […]
+
+─── passage 224 · 1139 tokens · A.--THE SUBJECTIVE NOTION. ───
+191.] The Syllogism of Necessity, if we look to its purely abstract
+characteristics or terms, has for its mean the Universal in the same
+way as the Syllogism of Reflection has the Individual, the latter
+being in the second, and the former in the third figure (§ 187).
+The Universal is expressly put as in its very nature intrinsically
+determinate. In the first place (1) the Particular, meaning by the
+particular the specific genus or species, is the term for mediating
+the extremes--as is done in the Categorical syllogism. (2) The
+same office is performed by the Individual, taking the individual a […]
+
+─── passage 252 · 986 tokens · C.--THE IDEA. ───
+The Absolute Idea is, in the first place, the unity of the theoretical
+and practical idea, and thus at the same time the unity of the idea
+of life with the idea of cognition. In cognition we had the idea in a
+biassed, one-sided shape. The process of cognition has issued in the
+overthrow of this bias and the restoration of that unity, which as
+unity, and in its immediacy, is in the first instance the Idea of Life.
+The defect of life lies in its being only the idea implicit or natural:
+whereas cognition is in an equally one-sided way the merely conscious
+idea, or the idea for itself. The unity a […]

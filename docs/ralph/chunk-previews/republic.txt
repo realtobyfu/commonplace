@@ -1,160 +1,155 @@
 $ tsx scripts/chunk-preview.ts --work republic --sample 10
 # The Republic (plato) — strategy: dialogue
-392 passages | tokens min 7 / p50 818 / p90 898 / max 1752 | mean 761
+198 passages | tokens min 7 / p50 866 / p90 899 / max 967 | mean 810
 
-─── passage 0 · 71 tokens · THE REPUBLIC ───
-By Plato
-
-Translated by Benjamin Jowett
-
-Note: See also “The Republic” by Plato, Jowett, eBook #150
-
-
-Contents
-
- INTRODUCTION AND ANALYSIS.
- THE REPUBLIC.
- PERSONS OF THE DIALOGUE.
- BOOK I.
- BOOK II.
- BOOK III.
- BOOK IV.
- BOOK V.
- BOOK VI.
- BOOK VII.
- BOOK VIII.
- BOOK IX.
- BOOK X.
-
-─── passage 39 · 1022 tokens · INTRODUCTION AND ANALYSIS. ───
-Next we pass on to gymnastics; about which I would remark, that the
-soul is related to the body as a cause to an effect, and therefore if
-we educate the mind we may leave the education of the body in her
-charge, and need only give a general outline of the course to be
-pursued. In the first place the guardians must abstain from strong
-drink, for they should be the last persons to lose their wits. Whether
-the habits of the palaestra are suitable to them is more doubtful, for
-the ordinary gymnastic is a sleepy sort of thing, and if left off
-suddenly is apt to endanger health. But our warrior athl […]
-
-─── passage 78 · 893 tokens · INTRODUCTION AND ANALYSIS. ───
-1. Of the higher method of knowledge in Plato we have only a glimpse.
-Neither here nor in the Phaedrus or Symposium, nor yet in the Philebus
-or Sophist, does he give any clear explanation of his meaning. He would
-probably have described his method as proceeding by regular steps to a
-system of universal knowledge, which inferred the parts from the whole
-rather than the whole from the parts. This ideal logic is not practised
-by him in the search after justice, or in the analysis of the parts of
-the soul; there, like Aristotle in the Nicomachean Ethics, he argues
-from experience and the common us […]
-
-─── passage 117 · 788 tokens · INTRODUCTION AND ANALYSIS. ───
-But now, let us reason with the unjust, who is not intentionally in
-error. Is not the noble that which subjects the beast to the man, or
-rather to the God in man; the ignoble, that which subjects the man to
-the beast? And if so, who would receive gold on condition that he was
-to degrade the noblest part of himself under the worst?—who would sell
-his son or daughter into the hands of brutal and evil men, for any
-amount of money? And will he sell his own fairer and diviner part
-without any compunction to the most godless and foul? Would he not be
-worse than Eriphyle, who sold her husband’s life  […]
-
-─── passage 156 · 677 tokens · INTRODUCTION AND ANALYSIS. ───
-Few persons would deny that we bring into the world an inheritance of
-mental and physical qualities derived first from our parents, or
-through them from some remoter ancestor, secondly from our race,
-thirdly from the general condition of mankind into which we are born.
-Nothing is commoner than the remark, that ‘So and so is like his father
-or his uncle’; and an aged person may not unfrequently note a
-resemblance in a youth to a long-forgotten ancestor, observing that
-‘Nature sometimes skips a generation.’ It may be true also, that if we
-knew more about our ancestors, these similarities would b […]
-
-─── passage 195 · 95 tokens · PERSONS OF THE DIALOGUE. ───
-Socrates, who is the narrator.
-
-Glaucon.
-
-Adeimantus.
-
-Polemarchus.
-
-Cephalus.
-
-Thrasymachus.
-
-Cleitophon.
-
-And others who are mute auditors.
-
+─── passage 0 · 59 tokens · PERSONS OF THE DIALOGUE. ───
 The scene is laid in the house of Cephalus at the Piraeus; and the
 whole dialogue is narrated by Socrates the day after it actually took
 place to Timaeus, Hermocrates, Critias, and a nameless person, who are
 introduced in the Timaeus.
 
-─── passage 234 · 888 tokens · BOOK II. ───
-Then it is impossible that God should ever be willing to change; being,
-as is supposed, the fairest and best that is conceivable, every God
-remains absolutely and for ever in his own form.
+─── passage 19 · 903 tokens · BOOK I. ───
+Well then, proceed with your answers, and let me have the remainder of
+my repast. For we have already shown that the just are clearly wiser
+and better and abler than the unjust, and that the unjust are incapable
+of common action; nay more, that to speak as we did of men who are evil
+acting at any time vigorously together, is not strictly true, for if
+they had been perfectly evil, they would have laid hands upon one
+another; but it is evident that there must have been some remnant of
+justice in them, which enabled them to combine; if there had not been
+they would have injured one another as wel […]
 
-That necessarily follows, he said, in my judgment.
+─── passage 38 · 896 tokens · BOOK II. ───
+And if any one asserts that the violation of oaths and treaties, which
+was really the work of Pandarus, was brought about by Athene and Zeus,
+or that the strife and contention of the gods was instigated by Themis
+and Zeus, he shall not have our approval; neither will we allow our
+young men to hear the words of Aeschylus, that
 
-Then, I said, my dear friend, let none of the poets tell us that
+‘God plants guilt among men when he desires utterly to destroy a
+house.’
 
-‘The gods, taking the disguise of strangers from other lands, walk up
-and down cities in all sorts of forms;’
+And if a poet writes of the sufferings of Niobe—the subject of the
+tragedy in which these iambic verses occur—or of the house of Pelops,
+or of the Trojan war or on any similar theme, either we must […]
 
-and let no one slander Proteus and Thetis, neither let any one, either
-in tragedy or in any other kind of poetry, introduce Here disguised in
-the likeness of a priestess asking an a […]
+─── passage 57 · 849 tokens · BOOK III. ───
+but they never prescribed what the patient was afterwards to eat or
+drink in the case of Menelaus, any more than in the case of Eurypylus;
+the remedies, as they conceived, were enough to heal any man who before
+he was wounded was healthy and regular in his habits; and even though
+he did happen to drink a posset of Pramnian wine, he might get well all
+the same. But they would have nothing to do with unhealthy and
+intemperate subjects, whose lives were of no use either to themselves
+or others; the art of medicine was not designed for their good, and
+though they were as rich as Midas, the sons of […]
 
-─── passage 273 · 857 tokens · BOOK IV. ───
-I quite understand, and I think as you do.
+─── passage 76 · 897 tokens · BOOK IV. ───
+But the question is not quite so easy when we proceed to ask whether
+these principles are three or one; whether, that is to say, we learn
+with one part of our nature, are angry with another, and with a third
+part desire the satisfaction of our natural appetites; or whether the
+whole soul comes into play in each sort of action—to determine that is
+the difficulty.
 
-Would you not say that thirst is one of these essentially relative
-terms, having clearly a relation—
+Yes, he said; there lies the difficulty.
 
-Yes, thirst is relative to drink.
+Then let us now try and determine whether they are the same or
+different.
 
-And a certain kind of thirst is relative to a certain kind of drink;
-but thirst taken alone is neither of much nor little, nor of good nor
-bad, nor of any particular kind of drink, but of drink only?
+How can we? he asked.
 
-Certainly.
+I replied as follows: The same thing clearly cannot act or be acted
+upon in the same part or i […]
 
-Then the soul of the thirsty one, in so far as he is thirsty, desires
-only drink; for this he yearns and tries to obtain it?
+─── passage 95 · 901 tokens · BOOK V. ───
+At the same time I ought here to repeat what I have said elsewhere,
+that if any of our guardians shall try to be happy in such a manner
+that he will cease to be a guardian, and is not content with this safe
+and harmonious life, which, in our judgment, is of all lives the best,
+but infatuated by some youthful conceit of happiness which gets up into
+his head shall seek to appropriate the whole state to himself, then he
+will have to learn how wisely Hesiod spoke, when he said, ‘half is more
+than the whole.’
 
-That is plain.
+If he were to consult me, I should say to him: Stay where you are, when
+you have the offe […]
 
-And if you suppose something which pulls a thirsty soul away fro […]
+─── passage 114 · 884 tokens · BOOK VI. ───
+What will be the issue of such marriages? Will they not be vile and
+bastard?
 
-─── passage 312 · 862 tokens · BOOK VI. ───
-It is most unbecoming.
+There can be no question of it.
 
-For he, Adeimantus, whose mind is fixed upon true being, has surely no
-time to look down upon the affairs of earth, or to be filled with
-malice and envy, contending against men; his eye is ever directed
-towards things fixed and immutable, which he sees neither injuring nor
-injured by one another, but all in order moving according to reason;
-these he imitates, and to these he will, as far as he can, conform
-himself. Can a man help imitating that with which he holds reverential
-converse?
+And when persons who are unworthy of education approach philosophy and
+make an alliance with her who is in a rank above them what sort of
+ideas and opinions are likely to be generated? Will they not be
+sophisms captivating to the ear, having nothing in them genuine, or
+worthy of or akin to true wisdom?
 
-Impossible.
+No doubt, he said.
 
-And the philosopher holding converse with the divine order, becomes
-ord […]
+Then, Adeimantus, I said, the worthy disciples of philosophy will be
+but a small remnant: perchance some noble and well-educated person,
+detained by exile in her se […]
 
-─── passage 351 · 854 tokens · BOOK VIII. ───
-They are certain to do so.
+─── passage 133 · 853 tokens · BOOK VII. ───
+Now, suppose a person were to say to them: O my friends, what are these
+wonderful numbers about which you are reasoning, in which, as you say,
+there is a unity such as you demand, and each unit is equal,
+invariable, indivisible,—what would they answer?
 
-And so the young man returns into the country of the lotus-eaters, and
-takes up his dwelling there in the face of all men; and if any help be
-sent by his friends to the oligarchical part of him, the aforesaid vain
-conceits shut the gate of the king’s fastness; and they will neither
-allow the embassy itself to enter, nor if private advisers offer the
-fatherly counsel of the aged will they listen to them or receive them.
-There is a battle and they gain the day, and then modesty, which they
-call silliness, is ignominiously thrust into exile by them, and
-temperance, whi […]
+They would answer, as I should conceive, that they were speaking of
+those numbers which can only be realized in thought.
+
+Then you see that this knowledge may be truly called necessary,
+necessitating as it clearly does the use of the pure intelligence in
+the attainment of pure truth?
+
+Yes; that is a marked characteristic of it.
+
+And have you fu […]
+
+─── passage 152 · 870 tokens · BOOK VIII. ───
+It will be clear enough then that in his ordinary dealings which give
+him a reputation for honesty he coerces his bad passions by an enforced
+virtue; not making them see that they are wrong, or taming them by
+reason, but by necessity and fear constraining them, and because he
+trembles for his possessions.
+
+To be sure.
+
+Yes, indeed, my dear friend, but you will find that the natural desires
+of the drone commonly exist in him all the same whenever he has to
+spend what is not his own.
+
+Yes, and they will be strong in him too.
+
+The man, then, will be at war with himself; he will be two men, and no […]
+
+─── passage 171 · 797 tokens · BOOK IX. ───
+And there is a neutral state which is neither pleasure nor pain?
+
+There is.
+
+A state which is intermediate, and a sort of repose of the soul about
+either—that is what you mean?
+
+Yes.
+
+You remember what people say when they are sick?
+
+What do they say?
+
+That after all nothing is pleasanter than health. But then they never
+knew this to be the greatest of pleasures until they were ill.
+
+Yes, I know, he said.
+
+And when persons are suffering from acute pain, you must have heard
+them say that there is nothing pleasanter than to get rid of their
+pain?
+
+I have.
+
+And there are many other cases of suffe […]

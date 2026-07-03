@@ -15,6 +15,7 @@ export interface ChunkingRules {
   targetTokens: number; // soft target per passage
   maxTokens: number; // soft cap
   overlapParagraphs?: number; // treatise-style overlap
+  skipHeadings?: string[]; // regex sources; matching sections are front matter, never chunked
 }
 
 export interface ChunkingSpec {
