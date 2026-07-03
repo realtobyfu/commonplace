@@ -13,3 +13,18 @@ scripts/run-hello.ts` runs the workflow and its `RunActivity:greet` span is
 visible in Jaeger. Notes: eslint pinned to v9 (eslint-config-next's react
 plugin breaks on v10); `drizzle-kit migrate` swallows errors, so `pnpm
 db:migrate` uses a programmatic migrator script instead.
+
+## P1 — Corpus (2026-07-02)
+
+A background research agent verified every Gutenberg ID against bibrec pages
+(results in `corpus-research.json`); `scripts/fetch-corpus.ts` is data-driven
+off that file. Fetched, cleaned, and checked in 19 works / 1,282,457 words:
+Plato ×5 (Jowett), Nietzsche ×4, Kant ×2, Schopenhauer ×8 (the Saunders
+"Essays" turned out to be seven separate Gutenberg volumes). Both Gutenberg
+footer formats handled (`*** END ***` and `End of Project Gutenberg's …`);
+boilerplate verified fully stripped. Exclusions recorded in the manifest and
+README: Hegel (Sibree's Philosophy of History absent from PG; no PD English
+Science of Logic) and Kierkegaard (no complete PD translation). This leaves
+4 thinkers, not 6 — flagged to Tobias since the draft promise line says "six
+thinkers" (H7) and Wallace's PD Hegel translations exist as possible
+substitutes.

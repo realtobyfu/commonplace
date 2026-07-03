@@ -1,0 +1,228 @@
+{
+  "fetchedAt": "2026-07-03T05:26:21.490Z",
+  "researchVerifiedAt": "2026-07-02",
+  "works": [
+    {
+      "author": "plato",
+      "authorDisplay": "Plato",
+      "title": "The Republic",
+      "translator": "Benjamin Jowett",
+      "gutenbergId": 1497,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/1497/pg1497.txt",
+      "licenseNote": "Public domain in the USA; Jowett translation first published 1871, PG release 1998-10-01",
+      "wordCount": 216285,
+      "file": "corpus/plato/the-republic.txt"
+    },
+    {
+      "author": "plato",
+      "authorDisplay": "Plato",
+      "title": "Symposium",
+      "translator": "Benjamin Jowett",
+      "gutenbergId": 1600,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/1600/pg1600.txt",
+      "licenseNote": "Public domain in the USA; Jowett translation, PG release 1999-01-01",
+      "wordCount": 32593,
+      "file": "corpus/plato/symposium.txt"
+    },
+    {
+      "author": "plato",
+      "authorDisplay": "Plato",
+      "title": "Phaedo",
+      "translator": "Benjamin Jowett",
+      "gutenbergId": 1658,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/1658/pg1658.txt",
+      "licenseNote": "Public domain in the USA; Jowett translation, PG release 1999-03-01",
+      "wordCount": 42778,
+      "file": "corpus/plato/phaedo.txt"
+    },
+    {
+      "author": "plato",
+      "authorDisplay": "Plato",
+      "title": "Apology",
+      "translator": "Benjamin Jowett",
+      "gutenbergId": 1656,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/1656/pg1656.txt",
+      "licenseNote": "Public domain in the USA; Jowett translation, PG release 1999-02-01",
+      "wordCount": 16094,
+      "file": "corpus/plato/apology.txt"
+    },
+    {
+      "author": "plato",
+      "authorDisplay": "Plato",
+      "title": "Phaedrus",
+      "translator": "Benjamin Jowett",
+      "gutenbergId": 1636,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/1636/pg1636.txt",
+      "licenseNote": "Public domain in the USA; Jowett translation, PG release 1999-02-01",
+      "wordCount": 38138,
+      "file": "corpus/plato/phaedrus.txt"
+    },
+    {
+      "author": "nietzsche",
+      "authorDisplay": "Friedrich Nietzsche",
+      "title": "Thus Spake Zarathustra",
+      "translator": "Thomas Common",
+      "gutenbergId": 1998,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/1998/pg1998.txt",
+      "licenseNote": "Public domain in the USA; Common translation, PG release 1999-12-01",
+      "wordCount": 110900,
+      "file": "corpus/nietzsche/thus-spake-zarathustra.txt"
+    },
+    {
+      "author": "nietzsche",
+      "authorDisplay": "Friedrich Nietzsche",
+      "title": "Beyond Good and Evil",
+      "translator": "Helen Zimmern",
+      "gutenbergId": 4363,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/4363/pg4363.txt",
+      "licenseNote": "Public domain in the USA; Zimmern translation, PG release 2003-08-01",
+      "wordCount": 62667,
+      "file": "corpus/nietzsche/beyond-good-and-evil.txt"
+    },
+    {
+      "author": "nietzsche",
+      "authorDisplay": "Friedrich Nietzsche",
+      "title": "The Genealogy of Morals",
+      "translator": "Horace B. Samuel",
+      "gutenbergId": 52319,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/52319/pg52319.txt",
+      "licenseNote": "Public domain in the USA; Samuel translation, orig. pub. T.N. Foulis 1913 (Oscar Levy-edited Complete Works series), PG release 2016-06-13",
+      "wordCount": 55347,
+      "file": "corpus/nietzsche/the-genealogy-of-morals.txt"
+    },
+    {
+      "author": "nietzsche",
+      "authorDisplay": "Friedrich Nietzsche",
+      "title": "The Antichrist",
+      "translator": "H. L. Mencken",
+      "gutenbergId": 19322,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/19322/pg19322.txt",
+      "licenseNote": "Public domain in the USA; Mencken translation pub. 1918 (Alfred A. Knopf), PG release 2006-09-18",
+      "wordCount": 33664,
+      "file": "corpus/nietzsche/the-antichrist.txt"
+    },
+    {
+      "author": "kant",
+      "authorDisplay": "Immanuel Kant",
+      "title": "Critique of Pure Reason",
+      "translator": "J. M. D. Meiklejohn",
+      "gutenbergId": 4280,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/4280/pg4280.txt",
+      "licenseNote": "Public domain in the USA; Meiklejohn translation pub. 1855, PG release 2003-07-01",
+      "wordCount": 209061,
+      "file": "corpus/kant/critique-of-pure-reason.txt"
+    },
+    {
+      "author": "kant",
+      "authorDisplay": "Immanuel Kant",
+      "title": "Fundamental Principles of the Metaphysic of Morals",
+      "translator": "T. K. Abbott",
+      "gutenbergId": 5682,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/5682/pg5682.txt",
+      "licenseNote": "Public domain in the USA; Abbott translation pub. 1873, PG release verified via bibrec",
+      "wordCount": 30798,
+      "file": "corpus/kant/fundamental-principles-of-the-metaphysic-of-morals.txt"
+    },
+    {
+      "author": "schopenhauer",
+      "authorDisplay": "Arthur Schopenhauer",
+      "title": "The World as Will and Idea (Vol. 1 of 3)",
+      "translator": "R. B. Haldane and J. Kemp",
+      "gutenbergId": 38427,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/38427/pg38427.txt",
+      "licenseNote": "Public domain in the USA; Haldane & Kemp translation, 7th ed. (Kegan Paul, Trench, Trübner & Co., 1909), PG release 2011-12-27",
+      "wordCount": 190615,
+      "file": "corpus/schopenhauer/the-world-as-will-and-idea-vol-1-of-3.txt"
+    },
+    {
+      "author": "schopenhauer",
+      "authorDisplay": "Arthur Schopenhauer",
+      "title": "The Wisdom of Life",
+      "translator": "T. Bailey Saunders",
+      "gutenbergId": 10741,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/10741/pg10741.txt",
+      "licenseNote": "Public domain in the USA; Saunders selections/translations pub. 1889-1897 (Swan Sonnenschein), PG release 2004-01-01",
+      "wordCount": 38151,
+      "file": "corpus/schopenhauer/the-wisdom-of-life.txt"
+    },
+    {
+      "author": "schopenhauer",
+      "authorDisplay": "Arthur Schopenhauer",
+      "title": "Studies in Pessimism",
+      "translator": "T. Bailey Saunders",
+      "gutenbergId": 10732,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/10732/pg10732.txt",
+      "licenseNote": "Public domain in the USA; Saunders selections/translations pub. 1889-1897 (Swan Sonnenschein), PG release 2004-01-01",
+      "wordCount": 30567,
+      "file": "corpus/schopenhauer/studies-in-pessimism.txt"
+    },
+    {
+      "author": "schopenhauer",
+      "authorDisplay": "Arthur Schopenhauer",
+      "title": "Counsels and Maxims",
+      "translator": "T. Bailey Saunders",
+      "gutenbergId": 10715,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/10715/pg10715.txt",
+      "licenseNote": "Public domain in the USA; Saunders selections/translations pub. 1889-1897 (Swan Sonnenschein), PG release 2004-01-01",
+      "wordCount": 45501,
+      "file": "corpus/schopenhauer/counsels-and-maxims.txt"
+    },
+    {
+      "author": "schopenhauer",
+      "authorDisplay": "Arthur Schopenhauer",
+      "title": "The Art of Controversy",
+      "translator": "T. Bailey Saunders",
+      "gutenbergId": 10731,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/10731/pg10731.txt",
+      "licenseNote": "Public domain in the USA; Saunders selections/translations pub. 1889-1897 (Swan Sonnenschein), PG release 2004-01-01",
+      "wordCount": 30143,
+      "file": "corpus/schopenhauer/the-art-of-controversy.txt"
+    },
+    {
+      "author": "schopenhauer",
+      "authorDisplay": "Arthur Schopenhauer",
+      "title": "On Human Nature",
+      "translator": "T. Bailey Saunders",
+      "gutenbergId": 10739,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/10739/pg10739.txt",
+      "licenseNote": "Public domain in the USA; Saunders selections/translations pub. 1889-1897 (Swan Sonnenschein), PG release 2004-01-01",
+      "wordCount": 32238,
+      "file": "corpus/schopenhauer/on-human-nature.txt"
+    },
+    {
+      "author": "schopenhauer",
+      "authorDisplay": "Arthur Schopenhauer",
+      "title": "Religion: A Dialogue, Etc.",
+      "translator": "T. Bailey Saunders",
+      "gutenbergId": 10833,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/10833/pg10833.txt",
+      "licenseNote": "Public domain in the USA; Saunders selections/translations pub. 1889-1897 (Swan Sonnenschein), PG release 2004-01-01",
+      "wordCount": 29452,
+      "file": "corpus/schopenhauer/religion-a-dialogue-etc.txt"
+    },
+    {
+      "author": "schopenhauer",
+      "authorDisplay": "Arthur Schopenhauer",
+      "title": "The Art of Literature",
+      "translator": "T. Bailey Saunders",
+      "gutenbergId": 10714,
+      "sourceUrl": "https://www.gutenberg.org/cache/epub/10714/pg10714.txt",
+      "licenseNote": "Public domain in the USA; Saunders selections/translations pub. 1889-1897 (Swan Sonnenschein), PG release 2004-01-01",
+      "wordCount": 37465,
+      "file": "corpus/schopenhauer/the-art-of-literature.txt"
+    }
+  ],
+  "exclusions": [
+    {
+      "author": "hegel",
+      "title": "The Philosophy of History",
+      "reason": "N/A -- work not present on Project Gutenberg"
+    },
+    {
+      "author": "hegel",
+      "title": "Science of Logic",
+      "reason": "Unclear / no verified public-domain English translation available"
+    }
+  ],
+  "totalWords": 1282457
+}
