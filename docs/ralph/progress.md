@@ -74,3 +74,19 @@ embeddings endpoint, so Ollama keeps embeddings. Kimi K2 is deprecated on
 Groq; GPT-OSS models are the current caching-capable tier. NOTE: .env.example
 still says ANTHROPIC_API_KEY — swap to GROQ_API_KEY manually (agent's .env*
 access is restricted).
+
+## P4 — Ingestion pipeline, code complete (2026-07-03)
+
+H4 decided by cost fiat (Groq cheap models; §16 eval waived — see
+decisions.md), so P3 folded into P4. Built: `lib/llm/` provider abstraction
+(Groq OpenAI-compatible + Ollama, per-call OTel spans, cost rows,
+MAX_SPEND_USD hard stop), durable `ingestPack` → `ingestWork` workflows with
+idempotent activities (passages upsert on (work_id, ordinal), summaries on
+passage_id, batched summarize loop that re-queries remaining so crashes
+resume mid-work), the quiet "resumed" note on activity retry (attempt > 1),
+graceful embedding deferral when Ollama is absent, concept-card synthesis
+from pack conceptSeeds, starter-prompt generation, SSE event stream, and the
+ingest screen (works checklist by author, milestone ticker, elapsed, running
+cost, no percentage bar). Typecheck/lint/tests green. NOT yet run end to end:
+no .env exists, so no GROQ_API_KEY — full-corpus ingestion and the
+kill-the-worker resumability test await credentials.
