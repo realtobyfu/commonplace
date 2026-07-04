@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { Context } from "@temporalio/activity";
 import { trace } from "@opentelemetry/api";
-import { and, asc, eq, ilike, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
 import { getPack } from "@/domain-packs";
 import { chunkWork } from "@/lib/chunking";
 import { db, schema } from "@/lib/db";
@@ -42,10 +42,41 @@ async function emitEvent(
   });
 }
 
-/** Emit the quiet "resumed" note (H2) once when an activity is retried. */
-async function noteResumeIfRetry(workspaceId: string): Promise<void> {
-  if (Context.current().info.attempt > 1) {
-    await emitEvent(workspaceId, "resumed", "Resumed after an interruption.");
+/**
+ * The H2 quiet "resumed" note: called once at worker boot, never from inside
+ * an activity. Ordinary activity retries (an Ollama hiccup, a Groq 429) are
+ * Temporal's own retry policy doing its job — the spec is explicit that
+ * those must stay invisible. What the note is FOR is the case where the
+ * whole worker process died (killed, laptop slept) and came back: on boot,
+ * any work still sitting in a non-terminal status ("chunking",
+ * "summarizing", "embedding") was left there by a previous process, since a
+ * live worker would have driven it to "ingested". Find the newest workspace
+ * for each such pack that hasn't finished ("pack_ready") and emit one note.
+ */
+export async function noteResumedWorkOnBoot(): Promise<void> {
+  const stuck = await db
+    .selectDistinct({ packId: schema.works.packId })
+    .from(schema.works)
+    .where(
+      inArray(schema.works.status, ["chunking", "summarizing", "embedding"]),
+    );
+
+  for (const { packId } of stuck) {
+    const workspace = await db.query.workspaces.findFirst({
+      where: eq(schema.workspaces.packId, packId),
+      orderBy: desc(schema.workspaces.createdAt),
+    });
+    if (!workspace) continue;
+
+    const finished = await db.query.events.findFirst({
+      where: and(
+        eq(schema.events.workspaceId, workspace.id),
+        eq(schema.events.kind, "pack_ready"),
+      ),
+    });
+    if (finished) continue;
+
+    await emitEvent(workspace.id, "resumed", "Resumed after an interruption.");
   }
 }
 
@@ -98,7 +129,6 @@ export async function chunkWorkActivity(input: {
   workspaceId: string;
   packId: string;
 }): Promise<{ passageCount: number }> {
-  await noteResumeIfRetry(input.workspaceId);
   const work = await db.query.works.findFirst({
     where: eq(schema.works.id, input.workId),
   });
@@ -156,7 +186,6 @@ export async function summarizeBatch(input: {
   packId: string;
   batchSize: number;
 }): Promise<{ summarized: number; remaining: number }> {
-  await noteResumeIfRetry(input.workspaceId);
   const pack = getPack(input.packId);
   const work = await db.query.works.findFirst({
     where: eq(schema.works.id, input.workId),
@@ -236,7 +265,6 @@ export async function embedWork(input: {
   workId: string;
   workspaceId: string;
 }): Promise<{ embedded: number; deferred: boolean }> {
-  await noteResumeIfRetry(input.workspaceId);
   await db
     .update(schema.works)
     .set({ status: "embedding" })
@@ -320,7 +348,6 @@ export async function synthesizeConceptCards(input: {
   packId: string;
   workspaceId: string;
 }): Promise<{ cards: number }> {
-  await noteResumeIfRetry(input.workspaceId);
   const pack = getPack(input.packId);
   const seeds = pack.conceptSeeds ?? [];
   let cards = 0;
@@ -408,7 +435,6 @@ export async function generateStarterPrompts(input: {
   packId: string;
   workspaceId: string;
 }): Promise<{ prompts: number }> {
-  await noteResumeIfRetry(input.workspaceId);
   const pack = getPack(input.packId);
   const cards = await db.query.conceptCards.findMany({
     where: eq(schema.conceptCards.packId, input.packId),

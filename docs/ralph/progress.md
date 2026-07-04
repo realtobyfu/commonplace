@@ -90,3 +90,34 @@ ingest screen (works checklist by author, milestone ticker, elapsed, running
 cost, no percentage bar). Typecheck/lint/tests green. NOT yet run end to end:
 no .env exists, so no GROQ_API_KEY — full-corpus ingestion and the
 kill-the-worker resumability test await credentials.
+
+## P4 fix — the resume note was firing on ordinary retries (2026-07-03)
+
+A live test run (worker + Temporal up, no Groq key yet) surfaced a real bug:
+the "resumed after an interruption" note was implemented as "fires when an
+activity's attempt > 1," which is also true for ordinary Temporal retries
+(an Ollama hiccup, a Groq 429) — the ingest screen showed eight copies of the
+note in one run, exactly the retry-exposing failure mode H2 forbids. Fixed by
+moving the check out of every activity entirely: `noteResumedWorkOnBoot()`
+(`worker/activities/ingest.ts`) runs once when the worker process starts,
+looks for any work stuck in a non-terminal status from a *previous* process,
+and emits one note per affected pack. Ordinary activity retries now produce
+zero events, matching "never expose retries" literally.
+
+## Workspace UI — three-surface shell built against real partial data (2026-07-03)
+
+Built `GET /api/w/:id/state` (§12) backed by a shared `lib/workspace/state.ts`
+query, and the three-surface workspace (§13.1) at `/w/[workspaceId]`: `Shelf`
+(collapsible, works grouped by author, per-author domain vocabulary from the
+pack — never hardcoded), `MemoryPanel` (budget meter, ghost-card empty state
+per §13.4, op feed, card states wired for the future condense/unfold
+transition), `Conversation` (promise line hero, starter-prompt fallback copy,
+composer disabled with in-voice copy until ingestion completes — no fake
+network calls, no debug jargon). Verified live in the browser against the
+actual DB state left over from the earlier ingestion test (17 works pending,
+Republic mid-summarize at 198 real passages) — shelf shows "reading" in
+verdigris exactly where expected, ghost cards and empty op feed render
+correctly, shelf collapse/expand works. No console errors. Typecheck, lint,
+and the 10 chunker tests all green. P5 (memory manager) and P6 (conversation
+loop) are still needed before the panel/composer have real data to show —
+this pass proves the surfaces themselves are sound.

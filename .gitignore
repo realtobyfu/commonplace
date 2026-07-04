@@ -14,5 +14,8 @@ next-env.d.ts
 .DS_Store
 *.tsbuildinfo
 
+# local dev-harness config (not part of the app)
+.claude/
+
 # eval blind-review artifacts are generated; fixtures + results ARE checked in
 eval/blind-review.html
