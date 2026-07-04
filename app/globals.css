@@ -2,10 +2,13 @@
 
 @theme {
   /* §13.5 — a reading room for ideas in motion */
-  --color-paper: #f7f6f2; /* cool paper background */
+  --color-paper: #f7f6f2; /* cool paper background — the page you're reading */
+  --color-paper-recessed: #efece4; /* shelf + memory panel — the furniture flanking the page */
   --color-ink: #1f2328; /* graphite ink text */
-  --color-structure: #d8d6cf; /* slate structure lines */
+  --color-structure: #d8d6cf; /* hairline dividers */
+  --color-structure-strong: #bcb8ac; /* section rules, panel seams — more presence than a hairline */
   --color-verdigris: #3e7c6f; /* reserved exclusively for memory state */
+  --color-verdigris-wash: #e3ebe8; /* verdigris at low strength — active-state fills */
   --color-pin-amber: #b8860b; /* pinned state only */
 
   --font-corpus: var(--font-newsreader), Georgia, serif;

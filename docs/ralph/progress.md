@@ -168,3 +168,21 @@ fill. 35 tests green (chunker + memory + provenance parsing/stripping).
 NOT yet verified: the two LLM legs (router call, synthesis streaming) and
 provenance chips with live citations — first message after the key lands
 exercises them. STOP → H3 tune + H5 demo follow that.
+
+## P6 design pass — restraint had become blandness (2026-07-04)
+
+Tobias's read on the first build: "the UI looks terrible and super bland."
+Fair — §13.5's "quiet"/"no shadows"/"not shouted" language had been
+implemented as low contrast everywhere rather than palette discipline (only
+two accents, ever) with normal visual structure. Fixed without adding any
+new colors: shelf + memory panel now sit on a recessed background tint
+(`--color-paper-recessed`) distinct from the conversation's pure-paper tone,
+so the three surfaces read as differentiated regions instead of one flat
+plane; ghost cards and the starter-prompt placeholder got a visible fill and
+higher base opacity instead of 30% dashed outlines; the budget meter is
+visible by default (was fully transparent until hover — nobody would have
+found it); section headers got real dividers; the "reading" work in the
+shelf gets a pulsing verdigris dot, not just tiny mono text. Verified live —
+same real data, same 35 tests green, zero console errors, meaningfully more
+legible and intentional-looking. Recorded as a memory note for future design
+work on this project.

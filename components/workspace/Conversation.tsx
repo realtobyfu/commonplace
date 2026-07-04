@@ -66,12 +66,12 @@ function Emphasized({ text }: { text: string }) {
 function ProvenanceChips({ chips }: { chips: ProvenanceChipData[] }) {
   if (chips.length === 0) return null;
   return (
-    <div className="mt-2 flex flex-wrap gap-1.5">
+    <div className="mt-2.5 flex flex-wrap gap-1.5">
       {chips.map((chip) => (
         <span
           key={chip.passageId}
           title={`${chip.author}, ${chip.workTitle} §${chip.ordinal}`}
-          className="rounded-full border border-verdigris/40 px-2 py-0.5 font-[family-name:var(--font-mono)] text-[10px] text-verdigris"
+          className="rounded-full bg-verdigris-wash px-2.5 py-1 font-[family-name:var(--font-mono)] text-[10px] text-verdigris"
         >
           {chip.workTitle} §{chip.ordinal}
         </span>
@@ -105,46 +105,59 @@ export function Conversation({
   };
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col">
+    <div className="flex min-w-0 flex-1 flex-col bg-paper">
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-10 py-12">
         {messages.length === 0 ? (
-          <div className="mx-auto max-w-xl text-center">
-            <p className="font-[family-name:var(--font-corpus)] text-3xl leading-snug text-ink">
-              {promiseLine}
-            </p>
+          <div className="flex h-full min-h-[420px] items-center justify-center">
+            <div className="mx-auto max-w-xl text-center">
+              <div className="mx-auto mb-6 h-px w-10 bg-structure-strong" />
+              <p className="font-[family-name:var(--font-corpus)] text-[2.25rem] leading-[1.25] text-ink">
+                {promiseLine}
+              </p>
+              <div className="mx-auto mt-6 h-px w-10 bg-structure-strong" />
 
-            <div className="mt-10 space-y-2 text-left">
-              {starterPrompts.length === 0 ? (
-                <p className="text-center text-sm leading-relaxed text-ink/40">
-                  Starter prompts appear once the shelf finishes filling.
-                </p>
-              ) : (
-                starterPrompts.map((p, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => canSend && onSend(p.prompt)}
-                    className="block w-full rounded-sm border border-structure px-4 py-3 text-left transition-colors hover:border-verdigris/50"
-                  >
-                    <span className="font-[family-name:var(--font-corpus)] text-sm text-ink">
-                      {p.prompt}
-                    </span>
-                    <span className="mt-1 block font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-wide text-verdigris/70">
-                      {BEHAVIOR_LABEL[p.behavior] ?? p.behavior}
-                    </span>
-                  </button>
-                ))
-              )}
+              <div className="mt-12 space-y-2.5 text-left">
+                {starterPrompts.length === 0 ? (
+                  <div className="space-y-2.5 pt-1">
+                    {[0, 1, 2].map((i) => (
+                      <div
+                        key={i}
+                        className="h-14 rounded-sm border border-dashed border-structure-strong bg-ink/[0.02]"
+                        style={{ opacity: 0.8 - i * 0.18 }}
+                      />
+                    ))}
+                    <p className="pt-2 text-center text-xs leading-relaxed text-ink/45">
+                      Starter prompts appear once the shelf finishes filling.
+                    </p>
+                  </div>
+                ) : (
+                  starterPrompts.map((p, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => canSend && onSend(p.prompt)}
+                      className="block w-full rounded-sm border border-structure-strong bg-white px-4 py-3.5 text-left shadow-[0_1px_0_0_rgba(31,35,40,0.03)] transition-colors hover:border-verdigris/50"
+                    >
+                      <span className="font-[family-name:var(--font-corpus)] text-[15px] text-ink">
+                        {p.prompt}
+                      </span>
+                      <span className="mt-1.5 block font-[family-name:var(--font-mono)] text-[10px] tracking-wide text-verdigris uppercase">
+                        {BEHAVIOR_LABEL[p.behavior] ?? p.behavior}
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         ) : (
-          <div className="mx-auto max-w-2xl space-y-6">
+          <div className="mx-auto max-w-2xl space-y-8">
             {messages.map((m) => (
               <div key={m.id}>
-                <p className="text-xs uppercase tracking-wide text-ink/40">
+                <p className="text-[11px] font-semibold tracking-[0.08em] text-ink/45 uppercase">
                   {m.role === "user" ? "You" : "Commonplace"}
                 </p>
-                <p className="mt-1 font-[family-name:var(--font-corpus)] text-base leading-relaxed whitespace-pre-wrap text-ink">
+                <p className="mt-1.5 font-[family-name:var(--font-corpus)] text-[17px] leading-relaxed whitespace-pre-wrap text-ink">
                   {m.content}
                   {m.streaming && m.content === "" && (
                     <span className="text-ink/35">…</span>
@@ -157,7 +170,7 @@ export function Conversation({
         )}
       </div>
 
-      <div className="border-t border-structure px-10 py-5">
+      <div className="border-t border-structure-strong px-10 py-5">
         <div className="mx-auto max-w-2xl">
           {statusLine && (
             <p
@@ -178,13 +191,13 @@ export function Conversation({
                   ? "Ask across the shelf…"
                   : "The shelf is still filling — hang tight."
               }
-              className="flex-1 border-b border-structure bg-transparent py-2 font-[family-name:var(--font-corpus)] text-sm text-ink outline-none placeholder:text-ink/35 focus:border-verdigris disabled:cursor-not-allowed"
+              className="flex-1 border-b border-structure-strong bg-transparent py-2 font-[family-name:var(--font-corpus)] text-[15px] text-ink outline-none placeholder:text-ink/35 focus:border-verdigris disabled:cursor-not-allowed"
             />
             <button
               type="button"
               onClick={submit}
               disabled={!canSend || !draft.trim()}
-              className="font-[family-name:var(--font-mono)] text-xs uppercase tracking-wide text-verdigris disabled:text-ink/25"
+              className="font-[family-name:var(--font-mono)] text-xs tracking-wide text-verdigris uppercase disabled:text-ink/25"
             >
               Send
             </button>
