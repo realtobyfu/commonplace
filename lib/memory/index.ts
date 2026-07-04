@@ -32,9 +32,27 @@ function compressReason(
   return `Compressed *${item.title}* — untouched for ${staleness}${room}.`;
 }
 
+export const DEFAULT_STALENESS_WEIGHT = 1;
+
 /**
- * Compress unpinned hydrated items, stalest and lowest-weight first, until
- * the set fits the budget or no more candidates remain. `protectedKeys`
+ * Eviction score: higher = compress sooner. Blends staleness (turns since
+ * touched, scaled by stalenessWeight) against importance (weight). At
+ * stalenessWeight 1 the two are balanced; raise it and recency dominates,
+ * drop it toward 0 and low-importance items go first regardless of age.
+ * This is the H3 knob.
+ */
+function evictionScore(
+  item: WorkingMemoryItem,
+  currentTurn: number,
+  stalenessWeight: number,
+): number {
+  const staleness = Math.max(0, currentTurn - item.lastTouchedAtTurn);
+  return staleness * stalenessWeight - item.weight;
+}
+
+/**
+ * Compress unpinned hydrated items, most-evictable first (see evictionScore),
+ * until the set fits the budget or no more candidates remain. `protectedKeys`
  * (this turn's required items) are never picked, so a plan never evicts the
  * very thing it just loaded.
  */
@@ -43,9 +61,11 @@ function evictToFit(input: {
   budgetTokens: number;
   currentTurn: number;
   protectedKeys: Set<string>;
+  stalenessWeight: number;
   incomingLabel?: string;
 }): { nextSet: WorkingMemoryItem[]; ops: MemoryOp[]; usedTokens: number; overBudget: boolean } {
-  const { set, budgetTokens, currentTurn, protectedKeys, incomingLabel } = input;
+  const { set, budgetTokens, currentTurn, protectedKeys, stalenessWeight, incomingLabel } =
+    input;
   const nextSet = set.map((item) => ({ ...item }));
   const ops: MemoryOp[] = [];
 
@@ -56,7 +76,12 @@ function evictToFit(input: {
       (item) =>
         !item.pinned && item.state === "hydrated" && !protectedKeys.has(itemKey(item)),
     )
-    .sort((a, b) => a.lastTouchedAtTurn - b.lastTouchedAtTurn || a.weight - b.weight);
+    .sort(
+      (a, b) =>
+        evictionScore(b, currentTurn, stalenessWeight) -
+          evictionScore(a, currentTurn, stalenessWeight) ||
+        a.itemId.localeCompare(b.itemId),
+    );
 
   for (const candidate of candidates) {
     if (usedTokens <= budgetTokens) break;
@@ -79,8 +104,15 @@ export function plan(input: {
   required: RequiredItem[];
   budgetTokens: number;
   currentTurn: number;
+  stalenessWeight?: number;
 }): PlanResult {
-  const { currentSet, required, budgetTokens, currentTurn } = input;
+  const {
+    currentSet,
+    required,
+    budgetTokens,
+    currentTurn,
+    stalenessWeight = DEFAULT_STALENESS_WEIGHT,
+  } = input;
   const working = currentSet.map((item) => ({ ...item }));
   const byKey = new Map(working.map((item) => [itemKey(item), item]));
   const loads: RequiredItem[] = [];
@@ -131,6 +163,7 @@ export function plan(input: {
     budgetTokens,
     currentTurn,
     protectedKeys,
+    stalenessWeight,
     incomingLabel: required[0]?.title,
   });
 
@@ -195,8 +228,15 @@ export function manualHydrate(input: {
   target: RequiredItem;
   budgetTokens: number;
   currentTurn: number;
+  stalenessWeight?: number;
 }): { nextSet: WorkingMemoryItem[]; ops: MemoryOp[]; usedTokens: number; overBudget: boolean } {
-  const { currentSet, target, budgetTokens, currentTurn } = input;
+  const {
+    currentSet,
+    target,
+    budgetTokens,
+    currentTurn,
+    stalenessWeight = DEFAULT_STALENESS_WEIGHT,
+  } = input;
   const key = itemKey(target);
   const working = currentSet.map((item) => ({ ...item }));
   const existing = working.find((i) => itemKey(i) === key);
@@ -229,6 +269,7 @@ export function manualHydrate(input: {
     budgetTokens,
     currentTurn,
     protectedKeys: new Set([key]),
+    stalenessWeight,
     incomingLabel: target.title,
   });
 

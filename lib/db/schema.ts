@@ -93,6 +93,9 @@ export const workspaces = pgTable("workspaces", {
   packId: text("pack_id").notNull(),
   promiseLine: text("promise_line").notNull(),
   starterPrompts: jsonb("starter_prompts"),
+  // H3/H5 tunables: token budget, staleness-vs-importance weighting, and the
+  // ask-before-large-load threshold. Null = use defaults (lib/workspace/settings).
+  settings: jsonb("settings"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

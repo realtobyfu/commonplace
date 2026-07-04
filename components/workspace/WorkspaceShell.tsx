@@ -2,8 +2,10 @@
 
 import { useCallback, useState } from "react";
 import type { WorkspaceState } from "@/lib/workspace/state";
-import { Conversation, type ChatMessage } from "./Conversation";
+import type { WorkspaceSettings } from "@/lib/workspace/settings";
+import { Conversation, type ChatMessage, type PendingInterrupt } from "./Conversation";
 import { MemoryPanel } from "./MemoryPanel";
+import { SettingsDrawer } from "./SettingsDrawer";
 import { Shelf } from "./Shelf";
 
 /**
@@ -54,6 +56,9 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
   const [recentOps, setRecentOps] = useState(state.recentOps);
   const [statusLine, setStatusLine] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [settings, setSettings] = useState<WorkspaceSettings>(state.settings);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [pendingInterrupt, setPendingInterrupt] = useState<PendingInterrupt | null>(null);
 
   const refreshState = useCallback(async () => {
     const res = await fetch(`/api/w/${state.workspace.id}/state`).catch(() => null);
@@ -65,20 +70,30 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
   }, [state.workspace.id]);
 
   const send = useCallback(
-    async (text: string) => {
+    async (text: string, opts: { approveLargeLoads?: boolean } = {}) => {
       if (busy) return;
       setBusy(true);
-      const userMsg: ChatMessage = {
-        id: `local-${Date.now()}`,
-        role: "user",
-        content: text,
-        provenance: [],
-        streaming: false,
-      };
+      setPendingInterrupt(null);
+      const approving = opts.approveLargeLoads === true;
+
+      // On the initial send, optimistically show the user's message; on an
+      // approval re-send the user bubble is already on screen, so only add a
+      // fresh streaming draft.
+      const userMsgId = `local-${Date.now()}`;
       const draftId = `draft-${Date.now()}`;
       setMessages((prev) => [
         ...prev,
-        userMsg,
+        ...(approving
+          ? []
+          : [
+              {
+                id: userMsgId,
+                role: "user",
+                content: text,
+                provenance: [],
+                streaming: false,
+              } as ChatMessage,
+            ]),
         { id: draftId, role: "assistant", content: "", provenance: [], streaming: true },
       ]);
 
@@ -86,7 +101,7 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
         const res = await fetch(`/api/w/${state.workspace.id}/messages`, {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ content: text }),
+          body: JSON.stringify({ content: text, approveLargeLoads: approving }),
         });
         if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
@@ -100,7 +115,20 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
           const { frames, rest } = parseSseChunk(buffer);
           buffer = rest;
           for (const frame of frames) {
-            if (frame.type === "status") {
+            if (frame.type === "interrupt") {
+              // H5 pause-and-ask: nothing was persisted. Drop the empty
+              // draft and surface a confirm affordance referencing this
+              // same question, which the user can approve or cancel.
+              setStatusLine(null);
+              setMessages((prev) => prev.filter((m) => m.id !== draftId));
+              setPendingInterrupt({
+                text,
+                userMsgId,
+                label: String(frame.label ?? "a large load"),
+                itemCount: Number(frame.itemCount ?? 1),
+                incomingTokens: Number(frame.incomingTokens ?? 0),
+              });
+            } else if (frame.type === "status") {
               setStatusLine(String(frame.message ?? ""));
             } else if (frame.type === "memory_op") {
               setRecentOps((prev) =>
@@ -192,6 +220,18 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
     [refreshState, state.workspace.id],
   );
 
+  const approveInterrupt = useCallback(() => {
+    if (!pendingInterrupt) return;
+    void send(pendingInterrupt.text, { approveLargeLoads: true });
+  }, [pendingInterrupt, send]);
+
+  const cancelInterrupt = useCallback(() => {
+    if (!pendingInterrupt) return;
+    const userMsgId = pendingInterrupt.userMsgId;
+    setMessages((prev) => prev.filter((m) => m.id !== userMsgId));
+    setPendingInterrupt(null);
+  }, [pendingInterrupt]);
+
   return (
     <div className="flex h-screen min-w-[1024px]">
       <Shelf works={state.shelf} workLabel={workLabel} />
@@ -203,6 +243,9 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
         statusLine={statusLine}
         busy={busy}
         onSend={send}
+        pendingInterrupt={pendingInterrupt}
+        onApproveInterrupt={approveInterrupt}
+        onCancelInterrupt={cancelInterrupt}
       />
       <MemoryPanel
         cards={workingSet.map((i) => ({
@@ -216,6 +259,46 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
         budget={budget}
         recentOps={recentOps}
         onOp={memoryOp}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
+      {settingsOpen && (
+        <SettingsDrawerHost
+          workspaceId={state.workspace.id}
+          settings={settings}
+          onClose={() => setSettingsOpen(false)}
+          onSaved={(s) => {
+            setSettings(s);
+            setBudget((b) => ({ ...b, total: s.tokenBudget }));
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * The drawer overlays the memory panel; it's rendered as a fixed panel on the
+ * right so it sits above the panel column without needing to thread props
+ * through MemoryPanel's internals.
+ */
+function SettingsDrawerHost({
+  workspaceId,
+  settings,
+  onClose,
+  onSaved,
+}: {
+  workspaceId: string;
+  settings: WorkspaceSettings;
+  onClose: () => void;
+  onSaved: (s: WorkspaceSettings) => void;
+}) {
+  return (
+    <div className="fixed top-0 right-0 z-20 h-screen w-[340px] border-l border-structure-strong">
+      <SettingsDrawer
+        workspaceId={workspaceId}
+        settings={settings}
+        onClose={onClose}
+        onSaved={onSaved}
       />
     </div>
   );

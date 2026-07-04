@@ -29,6 +29,15 @@ export interface StarterPrompt {
   behavior: string;
 }
 
+/** H5: a large load waiting for the user's go-ahead. */
+export interface PendingInterrupt {
+  text: string;
+  userMsgId: string;
+  label: string;
+  itemCount: number;
+  incomingTokens: number;
+}
+
 interface ConversationProps {
   promiseLine: string;
   starterPrompts: StarterPrompt[];
@@ -37,6 +46,9 @@ interface ConversationProps {
   statusLine: string | null;
   busy: boolean;
   onSend: (text: string) => void;
+  pendingInterrupt: PendingInterrupt | null;
+  onApproveInterrupt: () => void;
+  onCancelInterrupt: () => void;
 }
 
 const BEHAVIOR_LABEL: Record<string, string> = {
@@ -88,13 +100,16 @@ export function Conversation({
   statusLine,
   busy,
   onSend,
+  pendingInterrupt,
+  onApproveInterrupt,
+  onCancelInterrupt,
 }: ConversationProps) {
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
-  }, [messages]);
+  }, [messages, pendingInterrupt]);
 
   const canSend = ingestionDone && !busy;
   const submit = () => {
@@ -172,6 +187,40 @@ export function Conversation({
 
       <div className="border-t border-structure-strong px-10 py-5">
         <div className="mx-auto max-w-2xl">
+          {pendingInterrupt && (
+            <div className="mb-3 rounded-sm border border-verdigris/40 bg-verdigris-wash px-4 py-3">
+              <p className="text-sm text-ink">
+                Bringing{" "}
+                <em className="font-[family-name:var(--font-corpus)]">
+                  {pendingInterrupt.label}
+                </em>{" "}
+                into memory adds{" "}
+                <span className="font-[family-name:var(--font-mono)] text-xs text-verdigris">
+                  ~{pendingInterrupt.incomingTokens.toLocaleString()} tokens
+                </span>
+                {pendingInterrupt.itemCount > 1
+                  ? ` (${pendingInterrupt.itemCount} items).`
+                  : "."}{" "}
+                Load it?
+              </p>
+              <div className="mt-2.5 flex gap-2">
+                <button
+                  type="button"
+                  onClick={onApproveInterrupt}
+                  className="rounded-sm bg-verdigris px-3 py-1.5 font-[family-name:var(--font-mono)] text-[11px] tracking-wide text-white uppercase"
+                >
+                  Bring it in
+                </button>
+                <button
+                  type="button"
+                  onClick={onCancelInterrupt}
+                  className="rounded-sm border border-structure-strong px-3 py-1.5 font-[family-name:var(--font-mono)] text-[11px] tracking-wide text-ink/60 uppercase hover:text-ink"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
           {statusLine && (
             <p
               className="pb-2 text-xs text-verdigris"

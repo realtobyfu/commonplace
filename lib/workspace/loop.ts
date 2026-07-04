@@ -11,7 +11,7 @@ import {
   workSummaries,
 } from "./memoryStore";
 import { parseRouterPicks, stripProvenanceMarkers } from "./provenance";
-import { DEFAULT_TOKEN_BUDGET } from "./state";
+import { interruptsEnabled, resolveSettings } from "./settings";
 
 /**
  * The per-message conversation loop (§11):
@@ -19,11 +19,11 @@ import { DEFAULT_TOKEN_BUDGET } from "./state";
  * Emits typed events so the API route can interleave memory_op and
  * answer_delta frames on one SSE wire (§12).
  *
- * H5 interrupt policy: act-and-narrate. ASK_ABOVE_TOKENS is the threshold
- * above which the agent would pause and ask before a large load; the H5
- * default is "never ask" — the constant exists so the demo can flip it.
+ * H5 interrupt policy: act-and-narrate by default. When the workspace's
+ * `askAboveTokens` setting is finite, a turn whose new hydration exceeds it
+ * pauses and asks first (the "pause and ask" alternative). See
+ * lib/workspace/settings.ts.
  */
-export const ASK_ABOVE_TOKENS = Number.POSITIVE_INFINITY;
 
 export interface ProvenanceChip {
   passageId: string;
@@ -37,6 +37,9 @@ export type LoopEvent =
   | { type: "memory_op"; op: string; itemType: string; itemId: string; reason: string }
   | { type: "answer_delta"; text: string }
   | { type: "done"; messageId: string; content: string; provenance: ProvenanceChip[] }
+  // H5 pause-and-ask: the turn wants to load a large amount and is waiting
+  // for the user to approve before anything is persisted or hydrated.
+  | { type: "interrupt"; label: string; itemCount: number; incomingTokens: number }
   | { type: "error"; message: string };
 
 const ROUTER_PICK_CAP = 4;
@@ -198,8 +201,10 @@ export async function runConversationTurn(input: {
   workspaceId: string;
   message: string;
   emit: (event: LoopEvent) => void;
+  /** H5: set on the follow-up request after the user approves a large load. */
+  approveLargeLoads?: boolean;
 }): Promise<void> {
-  const { workspaceId, message, emit } = input;
+  const { workspaceId, message, emit, approveLargeLoads = false } = input;
   const workspace = await db.query.workspaces.findFirst({
     where: eq(schema.workspaces.id, workspaceId),
   });
@@ -208,13 +213,12 @@ export async function runConversationTurn(input: {
     return;
   }
   const pack = getPack(workspace.packId);
+  const settings = resolveSettings(workspace.settings);
 
-  await db.insert(schema.messages).values({
-    workspaceId,
-    role: "user",
-    content: message,
-  });
-  const turnRows = await db
+  // The turn clock is the count of user messages *including* this one. The
+  // message isn't persisted until we clear the H5 interrupt gate (below), so
+  // an interrupted-and-abandoned turn leaves no orphaned row.
+  const priorTurns = await db
     .select({ count: sql<number>`count(*)` })
     .from(schema.messages)
     .where(
@@ -223,7 +227,7 @@ export async function runConversationTurn(input: {
         eq(schema.messages.role, "user"),
       ),
     );
-  const currentTurn = Number(turnRows[0]?.count ?? 1);
+  const currentTurn = Number(priorTurns[0]?.count ?? 0) + 1;
 
   // 1. route
   emit({ type: "status", message: "Consulting the shelf…" });
@@ -258,6 +262,38 @@ export async function runConversationTurn(input: {
     retrieved = required.length > 0;
   }
 
+  const currentSet = await loadWorkingSet(workspaceId);
+
+  // H5 interrupt policy. Sum the tokens this turn would newly hydrate (items
+  // not already hydrated). If that swing exceeds the threshold and the user
+  // hasn't already approved, pause and ask — nothing is persisted or loaded.
+  if (!approveLargeLoads && interruptsEnabled(settings)) {
+    const hydratedKeys = new Set(
+      currentSet
+        .filter((i) => i.state === "hydrated")
+        .map((i) => `${i.itemType}:${i.itemId}`),
+    );
+    const incoming = required.filter(
+      (r) => !hydratedKeys.has(`${r.itemType}:${r.itemId}`),
+    );
+    const incomingTokens = incoming.reduce((sum, r) => sum + r.hydratedTokenCost, 0);
+    if (incomingTokens > settings.askAboveTokens && incoming[0]) {
+      emit({
+        type: "interrupt",
+        label: incoming[0].title,
+        itemCount: incoming.length,
+        incomingTokens,
+      });
+      return;
+    }
+  }
+
+  await db.insert(schema.messages).values({
+    workspaceId,
+    role: "user",
+    content: message,
+  });
+
   if (required[0]) {
     emit({
       type: "status",
@@ -266,12 +302,12 @@ export async function runConversationTurn(input: {
   }
 
   // 2. plan memory + persist + narrate
-  const currentSet = await loadWorkingSet(workspaceId);
   const planned = plan({
     currentSet,
     required,
-    budgetTokens: DEFAULT_TOKEN_BUDGET,
+    budgetTokens: settings.tokenBudget,
     currentTurn,
+    stalenessWeight: settings.stalenessWeight,
   });
   const ops = retrieved
     ? planned.ops.map((op) =>

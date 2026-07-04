@@ -13,7 +13,10 @@ export async function POST(
   { params }: { params: Promise<{ workspaceId: string }> },
 ) {
   const { workspaceId } = await params;
-  const body = (await request.json().catch(() => ({}))) as { content?: string };
+  const body = (await request.json().catch(() => ({}))) as {
+    content?: string;
+    approveLargeLoads?: boolean;
+  };
   const content = body.content?.trim();
   if (!content) {
     return new Response(JSON.stringify({ error: "Empty message" }), {
@@ -31,7 +34,12 @@ export async function POST(
         );
       };
       try {
-        await runConversationTurn({ workspaceId, message: content, emit });
+        await runConversationTurn({
+          workspaceId,
+          message: content,
+          emit,
+          approveLargeLoads: body.approveLargeLoads === true,
+        });
       } catch (err) {
         emit({
           type: "error",

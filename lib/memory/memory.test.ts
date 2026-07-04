@@ -101,6 +101,28 @@ describe("plan — eviction ordering", () => {
     expect(evicted[0]?.itemId).toBe("low-weight");
   });
 
+  it("staleness weighting flips which item is evicted (H3 knob)", () => {
+    // A stale-but-important card vs a fresh-but-trivial one, budget fits one.
+    const current = () => [
+      item({ itemId: "important-stale", title: "Important", lastTouchedAtTurn: 1, weight: 5 }),
+      item({ itemId: "trivial-fresh", title: "Trivial", lastTouchedAtTurn: 9, weight: 1 }),
+    ];
+    const args = {
+      required: [required({ itemId: "third" })],
+      budgetTokens: 2100,
+      currentTurn: 10,
+    };
+
+    // High staleness weight (default): recency dominates — the stale one goes.
+    const recencyLed = plan({ currentSet: current(), ...args, stalenessWeight: 1 });
+    expect(recencyLed.ops.find((o) => o.op === "evict")?.itemId).toBe("important-stale");
+
+    // Zero staleness weight: importance dominates — the trivial one goes
+    // even though it was touched more recently.
+    const importanceLed = plan({ currentSet: current(), ...args, stalenessWeight: 0 });
+    expect(importanceLed.ops.find((o) => o.op === "evict")?.itemId).toBe("trivial-fresh");
+  });
+
   it("compresses rather than drops — the item stays in the set", () => {
     const current = [item({ itemId: "stale", lastTouchedAtTurn: 1 })];
     const result = plan({

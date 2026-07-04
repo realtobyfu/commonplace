@@ -1,13 +1,12 @@
 import { asc, desc, eq, inArray } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+import { resolveSettings, type WorkspaceSettings } from "./settings";
 
 /**
  * The full workspace hydration shape (§12 GET /api/w/:id/state): shelf index,
- * working set, budget, messages, starter prompts. Shared by the API route
- * and the workspace page's server-side render, so both stay in lock step.
+ * working set, budget, messages, starter prompts, settings. Shared by the API
+ * route and the workspace page's server-side render, so both stay in lock step.
  */
-
-export const DEFAULT_TOKEN_BUDGET = 80_000;
 
 export interface ShelfWork {
   id: string;
@@ -35,6 +34,7 @@ export interface WorkspaceState {
     passageCount: number;
   }>;
   budget: { used: number; total: number };
+  settings: WorkspaceSettings;
   messages: Array<{
     id: string;
     role: string;
@@ -58,6 +58,8 @@ export async function loadWorkspaceState(
     where: eq(schema.workspaces.id, workspaceId),
   });
   if (!workspace) return null;
+
+  const settings = resolveSettings(workspace.settings);
 
   const works = await db.query.works.findMany({
     where: eq(schema.works.packId, workspace.packId),
@@ -190,7 +192,8 @@ export async function loadWorkspaceState(
     },
     shelf,
     workingSet,
-    budget: { used, total: DEFAULT_TOKEN_BUDGET },
+    budget: { used, total: settings.tokenBudget },
+    settings,
     messages: messages.map((m) => ({
       id: m.id,
       role: m.role,

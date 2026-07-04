@@ -7,7 +7,7 @@ import {
   loadWorkingSet,
   persistPlan,
 } from "@/lib/workspace/memoryStore";
-import { DEFAULT_TOKEN_BUDGET } from "@/lib/workspace/state";
+import { resolveSettings } from "@/lib/workspace/settings";
 
 /**
  * POST /api/w/:id/memory (§12) — user memory ops. Pins are inviolable to the
@@ -28,6 +28,13 @@ export async function POST(
     return NextResponse.json({ error: "op, itemType, itemId required" }, { status: 400 });
   }
 
+  const workspace = await db.query.workspaces.findFirst({
+    where: eq(schema.workspaces.id, workspaceId),
+  });
+  if (!workspace) {
+    return NextResponse.json({ error: "Unknown workspace" }, { status: 404 });
+  }
+  const settings = resolveSettings(workspace.settings);
   const currentSet = await loadWorkingSet(workspaceId);
   const target = { itemType: body.itemType, itemId: body.itemId };
 
@@ -48,8 +55,9 @@ export async function POST(
     const result = manualHydrate({
       currentSet,
       target: requiredItem,
-      budgetTokens: DEFAULT_TOKEN_BUDGET,
+      budgetTokens: settings.tokenBudget,
       currentTurn: Number(turnRows[0]?.count ?? 0),
+      stalenessWeight: settings.stalenessWeight,
     });
     await persistPlan({
       workspaceId,

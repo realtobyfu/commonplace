@@ -10,12 +10,12 @@
 
 const MARKER_RE = /\[\[(?:p:)?([0-9a-f-]{36})\]\]/gi;
 
-// Defensive second pass: the model sometimes cites a short ordinal instead
-// of the real passage UUID ([[p:11]], [[p:19]] — verified live). These can
-// never resolve to a real passage, but a bracket artifact leaking into the
-// prose still reads as broken, so anything shaped like a citation attempt
-// (the literal "p:" prefix) gets removed even when the id is malformed.
-const MALFORMED_MARKER_RE = /\[\[p:[^[\]]{0,40}\]\]/gi;
+// Defensive second pass: the model improvises citation shapes that never
+// resolve to a real passage but still leak brackets into the prose. Seen
+// live from gpt-oss-120b: ASCII short-ordinal ([[p:11]]) and fullwidth
+// brackets with an ordinal (【p:30】). Anything shaped like a "p:" citation
+// attempt in either bracket style gets removed.
+const MALFORMED_MARKER_RE = /\[\[p:[^[\]]{0,40}\]\]|【\s*p:[^】]{0,40}】/gi;
 
 export interface StrippedProvenance {
   clean: string;

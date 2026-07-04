@@ -33,6 +33,7 @@ interface MemoryPanelProps {
     itemType: string,
     itemId: string,
   ) => void;
+  onOpenSettings: () => void;
 }
 
 function formatRelativeTime(iso: string): string {
@@ -159,7 +160,13 @@ function Card({
   );
 }
 
-export function MemoryPanel({ cards, budget, recentOps, onOp }: MemoryPanelProps) {
+export function MemoryPanel({
+  cards,
+  budget,
+  recentOps,
+  onOp,
+  onOpenSettings,
+}: MemoryPanelProps) {
   const pct = Math.min(100, Math.round((budget.used / budget.total) * 100));
   const ordered = [...cards].sort((a, b) => {
     const rank = (c: WorkingMemoryCard) =>
@@ -168,14 +175,27 @@ export function MemoryPanel({ cards, budget, recentOps, onOp }: MemoryPanelProps
   });
 
   return (
-    <aside className="flex w-[340px] shrink-0 flex-col border-l border-structure-strong bg-paper-recessed">
+    <aside className="relative flex w-[340px] shrink-0 flex-col border-l border-structure-strong bg-paper-recessed">
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-baseline justify-between">
           <h2 className="text-xs font-semibold tracking-[0.08em] text-ink/60 uppercase">
             Working memory
           </h2>
-          <span className="font-[family-name:var(--font-mono)] text-[10px] text-ink/35">
-            {pct}%
+          <span className="flex items-center gap-2">
+            <span className="font-[family-name:var(--font-mono)] text-[10px] text-ink/35">
+              {pct}%
+            </span>
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              aria-label="Memory settings"
+              className="text-ink/35 hover:text-ink"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </button>
           </span>
         </div>
         <div

@@ -44,6 +44,14 @@ describe("stripProvenanceMarkers", () => {
     expect(clean).toBe("Moral judgments are reactive and hostile.");
     expect(passageIds).toEqual([]);
   });
+
+  it("strips fullwidth-bracket ordinal citations the model improvises", () => {
+    // verified live: gpt-oss-120b sometimes emits 【p:30】 instead of [[p:uuid]]
+    const text = "justice is clarified in the city soul 【p:30】 . And again 【p:31】.";
+    const { clean, passageIds } = stripProvenanceMarkers(text);
+    expect(clean).toBe("justice is clarified in the city soul. And again.");
+    expect(passageIds).toEqual([]);
+  });
 });
 
 describe("parseRouterPicks", () => {
