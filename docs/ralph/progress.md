@@ -186,3 +186,54 @@ shelf gets a pulsing verdigris dot, not just tiny mono text. Verified live —
 same real data, same 35 tests green, zero console errors, meaningfully more
 legible and intentional-looking. Recorded as a memory note for future design
 work on this project.
+
+## P4/P6 — first real ingestion + three live bugs found and fixed (2026-07-04)
+
+With a live GROQ_API_KEY, ran the actual 18-work corpus through the real
+pipeline for the first time: 3,289 passages, 3,289 summaries (100%), 6
+concept cards, 6 generated starter prompts, zero errors, **$0.189 total** —
+under the $0.30 estimate. Embeddings still defer everywhere (no Ollama);
+retrieval fallback would use the keyword tier if ever needed.
+
+Then ran the actual conversation loop live and found three real,
+production-breaking bugs no amount of code review would have surfaced:
+
+1. **Router always failed, silently.** `openai/gpt-oss-20b` is a reasoning
+   model — at `maxTokens: 300` it spent the whole budget on hidden reasoning
+   and returned empty content, which Groq's strict JSON mode rejected as a
+   400. The `try/catch` around the router call swallowed this as "router
+   found nothing," so *every* answer silently used keyword-only retrieval
+   fallback and concept cards were never actually used, despite six of them
+   existing. Fixed: `maxTokens: 1500` (verified via a standalone debug
+   script against the real DB before touching the app code), plus the catch
+   block now `console.error`s so a real outage isn't indistinguishable from
+   a legitimate empty-picks result next time.
+2. **Reasoning leaked into the visible answer.** Without an explicit
+   `reasoning_format`, Groq mixed gpt-oss's raw thinking tokens into the
+   same content stream — live answers came back full of "wait, let me pick
+   a different passage... no... maybe the id is..." Fixed by setting
+   `reasoning_format: "hidden"` on both the plain and streaming Groq calls
+   in `lib/llm/index.ts`. This alone then caused a *second* symptom: with
+   reasoning hidden and a large working set, the model burned its entire
+   1500-token synthesis budget on hidden reasoning and returned zero visible
+   output. Fixed by raising synthesis to `maxTokens: 4096` — reasoning and
+   visible completion share one budget on these models.
+3. **Raw `[[p:id]]` markers were permanently stuck in every displayed
+   answer**, even though the server-side strip was working correctly. Root
+   cause: `stripProvenanceMarkers` runs once, server-side, after the full
+   stream ends, and the cleaned text was written to the DB — but the `done`
+   SSE event never carried that cleaned text back to the browser, so the
+   client kept showing its own raw accumulated stream forever. Fixed by
+   adding `content` to the `done` event payload and having the client
+   replace the message body with it. Separately hardened
+   `stripProvenanceMarkers` to also remove malformed citation attempts
+   (`[[p:11]]` — the model citing a short ordinal instead of the real UUID)
+   so a bad citation doesn't leak brackets into otherwise-clean prose.
+
+All three fixed, unit-tested (38 tests: 2 new provenance cases), and
+re-verified live end to end: a cross-thinker question now genuinely routes
+to the right concept card, hydrates real Schopenhauer + Kant passages,
+streams a clean multi-paragraph answer with zero visible artifacts, and
+attaches one real, DB-verified provenance chip resolving to an exact
+passage. Total live-testing spend: $0.225. This is the P6 DONE check,
+satisfied for real — not just wired up. STOP → H3 tune + H5 demo remain.

@@ -53,6 +53,11 @@ async function groqChat(
         messages,
         max_tokens: opts.maxTokens ?? 1024,
         temperature: opts.temperature ?? 0.3,
+        // GPT-OSS models reason before answering; without this, Groq mixes
+        // raw thinking tokens into the visible content (verified live —
+        // answers came back full of "wait, let me pick a different
+        // passage..." scratchpad text). Hidden keeps only the final answer.
+        reasoning_format: "hidden",
         ...(opts.json ? { response_format: { type: "json_object" } } : {}),
       }),
     });
@@ -190,6 +195,7 @@ export async function chatStream(
       ],
       max_tokens: opts.maxTokens ?? 2048,
       temperature: opts.temperature ?? 0.4,
+      reasoning_format: "hidden", // see groqChat — same GPT-OSS leak
       stream: true,
       stream_options: { include_usage: true },
     }),

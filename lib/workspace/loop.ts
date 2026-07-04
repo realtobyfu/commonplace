@@ -36,7 +36,7 @@ export type LoopEvent =
   | { type: "status"; message: string }
   | { type: "memory_op"; op: string; itemType: string; itemId: string; reason: string }
   | { type: "answer_delta"; text: string }
-  | { type: "done"; messageId: string; provenance: ProvenanceChip[] }
+  | { type: "done"; messageId: string; content: string; provenance: ProvenanceChip[] }
   | { type: "error"; message: string };
 
 const ROUTER_PICK_CAP = 4;
@@ -75,7 +75,12 @@ async function routeMessage(input: {
       'If nothing in the index covers the question, reply {"items":[]}.',
     prompt: `${index}\n\nQuestion: ${input.message}`,
     json: true,
-    maxTokens: 300,
+    // gpt-oss-20b is a reasoning model — it spends tokens on hidden
+    // reasoning before emitting the JSON answer. At 300 this reliably
+    // produced empty output, which Groq's strict json mode then rejects
+    // as a 400 (verified live: the router silently "failed" on every
+    // single call and every answer fell back to keyword retrieval).
+    maxTokens: 1500,
     temperature: 0,
     workspaceId: input.workspaceId,
   });
@@ -225,8 +230,12 @@ export async function runConversationTurn(input: {
   let picks: Array<{ type: "card" | "work"; id: string }> = [];
   try {
     picks = await routeMessage({ packId: workspace.packId, workspaceId, message });
-  } catch {
-    picks = []; // router failure → retrieval fallback keeps us grounded
+  } catch (err) {
+    // Falls back to retrieval, same as a legitimate "nothing matched" —
+    // but log server-side so a real router outage is diagnosable instead
+    // of looking identical to a router that correctly found no coverage.
+    console.error("[loop] router call failed, falling back to retrieval:", err);
+    picks = [];
   }
 
   const required: RequiredItem[] = [];
@@ -295,7 +304,11 @@ export async function runConversationTurn(input: {
     const stream = await chatStream("synthesis", {
       system: pack.prompts.answerSystem,
       prompt,
-      maxTokens: 1500,
+      // gpt-oss-120b's reasoning tokens count against this same budget —
+      // verified live: at 1500 with reasoning_format hidden and a large
+      // working set, reasoning alone consumed the whole budget and the
+      // visible answer came back completely empty. Generous headroom here.
+      maxTokens: 4096,
       workspaceId,
     });
     for await (const delta of stream.deltas) {
@@ -347,5 +360,5 @@ export async function runConversationTurn(input: {
     }
   }
 
-  emit({ type: "done", messageId, provenance });
+  emit({ type: "done", messageId, content: clean, provenance });
 }

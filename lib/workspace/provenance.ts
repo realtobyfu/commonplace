@@ -1,10 +1,21 @@
 /**
  * Provenance markers (§11 steps 3–4). The synthesis prompt instructs the
- * model to append [[p:PASSAGE_ID]] after grounded claims; these helpers
- * strip the markers out of display text and collect the cited ids.
+ * model to append [[p:PASSAGE_ID]] after grounded claims. Verified live
+ * against gpt-oss-120b: it reliably wraps the id in double brackets but
+ * regularly drops the literal "p:" prefix ([[UUID]] instead of
+ * [[p:UUID]]) — the "p:" is optional here so both forms strip cleanly
+ * rather than leaking raw brackets into the answer and silently losing
+ * every citation.
  */
 
-const MARKER_RE = /\[\[p:([0-9a-f-]{36})\]\]/gi;
+const MARKER_RE = /\[\[(?:p:)?([0-9a-f-]{36})\]\]/gi;
+
+// Defensive second pass: the model sometimes cites a short ordinal instead
+// of the real passage UUID ([[p:11]], [[p:19]] — verified live). These can
+// never resolve to a real passage, but a bracket artifact leaking into the
+// prose still reads as broken, so anything shaped like a citation attempt
+// (the literal "p:" prefix) gets removed even when the id is malformed.
+const MALFORMED_MARKER_RE = /\[\[p:[^[\]]{0,40}\]\]/gi;
 
 export interface StrippedProvenance {
   clean: string;
@@ -23,7 +34,9 @@ export function stripProvenanceMarkers(text: string): StrippedProvenance {
       }
       return "";
     })
+    .replace(MALFORMED_MARKER_RE, "")
     .replace(/[ \t]+([.,;:!?])/g, "$1") // marker removal can orphan a space
+    .replace(/,\s*(?=[.,;:!?]|$)/g, "") // or an orphaned separator comma (multiple citations were comma-joined)
     .replace(/[ \t]{2,}/g, " ")
     .trim();
   return { clean, passageIds };

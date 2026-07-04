@@ -123,12 +123,17 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
                 ),
               );
             } else if (frame.type === "done") {
+              // Replace the raw streamed accumulation with the server's
+              // cleaned text — provenance markers are stripped only once
+              // the full answer is in, so the live stream still contains
+              // them until this frame arrives.
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === draftId
                     ? {
                         ...m,
                         id: String(frame.messageId ?? draftId),
+                        content: String(frame.content ?? m.content),
                         provenance: (frame.provenance ?? []) as ChatMessage["provenance"],
                         streaming: false,
                       }

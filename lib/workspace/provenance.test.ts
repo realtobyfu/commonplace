@@ -26,10 +26,22 @@ describe("stripProvenanceMarkers", () => {
     expect(passageIds).toEqual([]);
   });
 
-  it("ignores malformed markers", () => {
-    const text = "Half a marker [[p:not-a-uuid]] stays visible.";
+  it("strips bare-UUID markers too — gpt-oss-120b regularly drops the p: prefix", () => {
+    const text = `Kant's universalizability test [[${ID_A}]] versus Schopenhauer's compassion [[${ID_B}]].`;
     const { clean, passageIds } = stripProvenanceMarkers(text);
-    expect(clean).toContain("[[p:not-a-uuid]]");
+    expect(clean).toBe(
+      "Kant's universalizability test versus Schopenhauer's compassion.",
+    );
+    expect(passageIds).toEqual([ID_A, ID_B]);
+  });
+
+  it("strips malformed citation attempts without counting them as real citations", () => {
+    // verified live: gpt-oss-120b sometimes cites a short ordinal ("§11")
+    // instead of the real passage UUID — never resolvable, but should not
+    // leak "[[p:11]]" into the reader-facing prose either.
+    const text = "Moral judgments are reactive and hostile. [[p:11]], [[p:19]]";
+    const { clean, passageIds } = stripProvenanceMarkers(text);
+    expect(clean).toBe("Moral judgments are reactive and hostile.");
     expect(passageIds).toEqual([]);
   });
 });
