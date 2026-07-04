@@ -237,3 +237,32 @@ streams a clean multi-paragraph answer with zero visible artifacts, and
 attaches one real, DB-verified provenance chip resolving to an exact
 passage. Total live-testing spend: $0.225. This is the P6 DONE check,
 satisfied for real — not just wired up. STOP → H3 tune + H5 demo remain.
+
+## H3 + H5 — the two post-P6 gates, built, demoed, and decided (2026-07-04)
+
+Both gates the spec attaches to P6's completion. Built the missing halves so
+each was demoable, then Tobias recorded verdicts (docs/decisions.md).
+
+The tunables moved from constants to a per-workspace `settings` jsonb column
+(migration 0003) with a `resolveSettings` merge/clamp layer, threaded through
+the loop, both memory API routes, and `loadWorkspaceState`. A memory-settings
+drawer (gear in the panel header) turns the knobs live via PATCH
+/api/w/:id/settings.
+
+- **H3** — `evictToFit` now blends staleness and importance into one score
+  (`staleness * stalenessWeight − weight`) instead of a hardcoded
+  staleness-then-weight sort; a unit test proves stalenessWeight 0 vs 1 flips
+  which of two cards is compressed. Verdict: keep 80K budget, balanced 1.0
+  weighting (defaults, retunable in the drawer).
+- **H5** — built the pause-and-ask path: the loop sums a turn's new hydration
+  and, if it exceeds `askAboveTokens`, emits an `interrupt` and returns having
+  persisted nothing (restructured so the user message is only written once the
+  gate clears — no orphaned rows on cancel). The composer shows a Bring-it-in
+  / Cancel affordance; approve re-POSTs with a bypass flag. Verified live at a
+  2k threshold. Verdict: act-and-narrate default, pause-and-ask kept in
+  settings (off) for the demo.
+
+One more live artifact caught and fixed along the way: gpt-oss-120b sometimes
+emits fullwidth-bracket ordinal citations (【p:30】); the strip regex now
+handles that variant alongside the ASCII forms. 38 tests green. Remaining
+open gates: H2 (progress-design review) and H7 (promise line), both in P8.

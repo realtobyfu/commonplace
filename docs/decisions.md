@@ -45,8 +45,25 @@ after interruption" note as the only failure surface; no percentage bar.
 
 ## H3 — Eviction policy
 
-**Status: OPEN.** Tuned after the first end-to-end conversation (P6): budget
-size, staleness weighting, permission-before-large-loads.
+**Status: DECIDED 2026-07-04 (Tobias).** Agent-managed-with-user-override
+stands as the model (agent plans loads/evictions each turn; pins are
+inviolable; the user can pin/evict/hydrate anytime). The tunables are now
+per-workspace settings (a jsonb column, editable in the memory-settings
+drawer — gear icon in the panel header), not constants:
+
+- **Token budget: 80,000** (the spec default). Behaved well in the live
+  cross-thinker demo — enough headroom that compression only kicks in on a
+  genuinely loaded conversation, which is the honest behavior.
+- **Staleness weighting: 1.0** (balanced). `evictToFit` scores each
+  candidate `staleness * weight − importance`; at 1.0 recency and importance
+  trade off evenly. Lower it toward 0 to evict by importance regardless of
+  age; raise it to let the stalest cards compress first. Kept balanced as the
+  default; the knob exists for demoing the difference.
+- **Permission before large loads:** see H5 — the agent does *not* ask by
+  default (act-and-narrate).
+
+The values are defaults, not locks — the drawer lets any of them be retuned
+live and the change applies on the next turn.
 
 ## H4 — Ingestion model
 
@@ -75,8 +92,20 @@ plus the H4 eval.
 
 ## H5 — Interrupt policy
 
-**Status: OPEN.** Act-and-narrate implemented first (`ASK_ABOVE_TOKENS`,
-default: never ask); both behaviors demoed after P6.
+**Status: DECIDED 2026-07-04 (Tobias).** **Act-and-narrate is the default.**
+When the router wants to bring in a whole work mid-conversation, the agent
+just does it and narrates the load in the op feed — the memory panel is where
+you watch what happened, and interrupting the conversation to ask permission
+adds friction for little gain in the common case.
+
+The pause-and-ask alternative is fully built and kept behind the workspace's
+`askAboveTokens` setting (off by default = never ask). When a threshold is
+set, a turn whose new hydration exceeds it emits an `interrupt` and persists
+nothing until the user answers "Bring it in / Cancel" in the composer;
+approval re-sends with a bypass flag. Verified live at a 2,000-token
+threshold (a Plato question wanted the *justice* card + a Republic summary,
+~12.5k tokens → paused → approved → completed). Left in the settings drawer
+precisely so the portfolio walkthrough can demo both behaviors on demand.
 
 ## H6 — (reserved)
 
