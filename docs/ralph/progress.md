@@ -140,3 +140,31 @@ are deterministic, not time-flaky — the persistence layer (P6) will map turn
 number to `last_touched_at`. 26 unit tests green, covering exactly the DONE
 bar (eviction ordering, pin inviolability, budget overflow) plus manual ops
 and cache-stable ordering. Typecheck/lint clean. No UI surface this pass.
+
+## P6 — Conversation loop, built and partially verified (2026-07-04)
+
+The full §11 loop in `lib/workspace/loop.ts`: router (Groq gpt-oss-20b, strict
+JSON against a card+work index, invalid ids filtered) → `memory.plan()` →
+persist + narrate ops → streaming synthesis (new `chatStream` in lib/llm,
+usage-chunk cost metering) → provenance markers stripped into
+`message_provenance` → done. One SSE wire from POST /api/w/:id/messages
+carries status / memory_op / answer_delta / done / error frames; the shell
+fans them out (panel feed animates while the answer streams). H5 shipped as
+act-and-narrate with `ASK_ABOVE_TOKENS = Infinity`. §11.4 retrieval fallback
+has two tiers: pgvector cosine over summaries when embeddings exist, keyword
+scan over summaries when they don't (Ollama still absent) — router failure
+or empty picks degrade to it, so answers stay grounded. `memoryStore.ts` maps
+the pure module to working_memory_items (costs recomputed from content on
+load; new `last_touched_turn` column carries the monotonic clock). User ops
+route (POST /api/w/:id/memory) shares the same pure module + audit log.
+
+Verified WITHOUT the still-missing Groq key by driving the user-ops API
+against real corpus data: hydrate → pin → hydrate → compress on real
+Republic passages produced correct reasons ("You brought *The Republic §42*
+into memory."), and the panel now shows all three §13.2 card states live —
+pinned (amber glyph, 1p badge), hydrated, compressed (reduced
+opacity/height) — plus the op feed verbatim and the budget meter's first
+fill. 35 tests green (chunker + memory + provenance parsing/stripping).
+NOT yet verified: the two LLM legs (router call, synthesis streaming) and
+provenance chips with live citations — first message after the key lands
+exercises them. STOP → H3 tune + H5 demo follow that.

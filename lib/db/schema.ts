@@ -119,6 +119,9 @@ export const workingMemoryItems = pgTable(
     pinned: boolean("pinned").notNull().default(false),
     loadedAt: timestamp("loaded_at").notNull().defaultNow(),
     lastTouchedAt: timestamp("last_touched_at").notNull().defaultNow(),
+    // monotonic turn counter mirror of last_touched_at — what lib/memory's
+    // staleness ordering and "untouched for N turns" reasons run on
+    lastTouchedTurn: integer("last_touched_turn").notNull().default(0),
     tokenCost: integer("token_cost").notNull(),
   },
   (t) => [primaryKey({ columns: [t.workspaceId, t.itemType, t.itemId] })],

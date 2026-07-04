@@ -1,0 +1,1 @@
+ALTER TABLE "working_memory_items" ADD COLUMN "last_touched_turn" integer DEFAULT 0 NOT NULL;

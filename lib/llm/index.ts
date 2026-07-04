@@ -151,6 +151,125 @@ export async function chat(job: JobKind, opts: ChatOptions): Promise<ChatResult>
   });
 }
 
+export interface StreamHandle {
+  /** Async iterator of text deltas. */
+  deltas: AsyncGenerator<string, void, unknown>;
+  /** Resolves after the stream ends, with final usage + metered cost. */
+  result: Promise<ChatResult>;
+}
+
+/**
+ * Streaming chat for the synthesis job (§11 step 3). Groq only — the
+ * synthesis route is Groq per H4, and Ollama never streams in this app.
+ * Cost is metered from the terminal usage chunk, same table as chat().
+ */
+export async function chatStream(
+  job: JobKind,
+  opts: ChatOptions,
+): Promise<StreamHandle> {
+  const route = routing[job];
+  if (route.provider !== "groq") {
+    throw new Error(`chatStream only supports groq routes (job: ${job})`);
+  }
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error("GROQ_API_KEY is not set");
+  await assertUnderSpendCap();
+
+  const span = tracer.startSpan(`llm.${job}.stream`);
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: route.model,
+      messages: [
+        ...(opts.system ? [{ role: "system", content: opts.system }] : []),
+        { role: "user", content: opts.prompt },
+      ],
+      max_tokens: opts.maxTokens ?? 2048,
+      temperature: opts.temperature ?? 0.4,
+      stream: true,
+      stream_options: { include_usage: true },
+    }),
+  });
+  if (!res.ok || !res.body) {
+    span.end();
+    throw new Error(`Groq ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  }
+
+  let resolveResult!: (r: ChatResult) => void;
+  let rejectResult!: (e: unknown) => void;
+  const result = new Promise<ChatResult>((resolve, reject) => {
+    resolveResult = resolve;
+    rejectResult = reject;
+  });
+
+  const body = res.body;
+  async function* deltas(): AsyncGenerator<string, void, unknown> {
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let inputTokens = 0;
+    let outputTokens = 0;
+    try {
+      for await (const chunk of body) {
+        buffer += decoder.decode(chunk as Uint8Array, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          const data = line.replace(/^data: ?/, "").trim();
+          if (!data || data === "[DONE]" || !line.startsWith("data:")) continue;
+          const parsed = JSON.parse(data) as {
+            choices?: Array<{ delta?: { content?: string } }>;
+            usage?: { prompt_tokens?: number; completion_tokens?: number };
+            x_groq?: { usage?: { prompt_tokens?: number; completion_tokens?: number } };
+          };
+          const usage = parsed.usage ?? parsed.x_groq?.usage;
+          if (usage) {
+            inputTokens = usage.prompt_tokens ?? inputTokens;
+            outputTokens = usage.completion_tokens ?? outputTokens;
+          }
+          const delta = parsed.choices?.[0]?.delta?.content;
+          if (delta) yield delta;
+        }
+      }
+      const costUsd = computeCostUsd(route.model, inputTokens, outputTokens);
+      span.setAttributes({
+        "llm.provider": "groq",
+        "llm.model": route.model,
+        "llm.input_tokens": inputTokens,
+        "llm.output_tokens": outputTokens,
+        "llm.cost_usd": costUsd,
+      });
+      await recordCost({
+        workspaceId: opts.workspaceId,
+        job,
+        provider: "groq",
+        model: route.model,
+        inputTokens,
+        outputTokens,
+        costUsd,
+      });
+      resolveResult({
+        text: "",
+        model: route.model,
+        provider: "groq",
+        inputTokens,
+        outputTokens,
+        costUsd,
+      });
+    } catch (err) {
+      rejectResult(err);
+      throw err;
+    } finally {
+      span.end();
+    }
+  }
+
+  return { deltas: deltas(), result };
+}
+
 /** Embeddings via Ollama. Returns null when Ollama isn't reachable. */
 export async function embed(texts: string[]): Promise<number[][] | null> {
   const base = process.env.OLLAMA_BASE_URL ?? "http://localhost:11434";
