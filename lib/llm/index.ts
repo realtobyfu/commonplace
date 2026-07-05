@@ -1,6 +1,6 @@
 import { trace } from "@opentelemetry/api";
 import { assertUnderSpendCap, recordCost } from "./cost";
-import { computeCostUsd, routing, type JobKind } from "./routing";
+import { computeCostUsd, isReasoningModel, routing, type JobKind } from "./routing";
 
 /**
  * Provider abstraction (§15). `chat` routes a job to its configured provider,
@@ -57,7 +57,8 @@ async function groqChat(
         // raw thinking tokens into the visible content (verified live —
         // answers came back full of "wait, let me pick a different
         // passage..." scratchpad text). Hidden keeps only the final answer.
-        reasoning_format: "hidden",
+        // Only sent for reasoning models: Llama-family models 400 on it.
+        ...(isReasoningModel(model) ? { reasoning_format: "hidden" } : {}),
         ...(opts.json ? { response_format: { type: "json_object" } } : {}),
       }),
     });
@@ -195,7 +196,7 @@ export async function chatStream(
       ],
       max_tokens: opts.maxTokens ?? 2048,
       temperature: opts.temperature ?? 0.4,
-      reasoning_format: "hidden", // see groqChat — same GPT-OSS leak
+      ...(isReasoningModel(route.model) ? { reasoning_format: "hidden" } : {}), // see groqChat
       stream: true,
       stream_options: { include_usage: true },
     }),

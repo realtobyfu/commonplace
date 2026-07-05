@@ -1,0 +1,206 @@
+{
+  "fetchedAt": "2026-07-05T07:38:43.974Z",
+  "works": [
+    {
+      "author": "dave-abrahams",
+      "authorDisplay": "Dave Abrahams",
+      "title": "SE-0023: API Design Guidelines",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 339,
+      "file": "corpus/swift-evolution/0023-api-guidelines.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0023-api-guidelines.md"
+    },
+    {
+      "author": "ilya-belenkiy",
+      "authorDisplay": "Ilya Belenkiy",
+      "title": "SE-0025: Scoped Access Level",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 1733,
+      "file": "corpus/swift-evolution/0025-scoped-access-level.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0025-scoped-access-level.md"
+    },
+    {
+      "author": "max-moiseev",
+      "authorDisplay": "Max Moiseev",
+      "title": "SE-0093: Adding a public `base` property to slices",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 305,
+      "file": "corpus/swift-evolution/0093-slice-base.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0093-slice-base.md"
+    },
+    {
+      "author": "vladimir-s",
+      "authorDisplay": "Vladimir S.",
+      "title": "SE-0110: Distinguish between single-tuple and multiple-argument function types",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 552,
+      "file": "corpus/swift-evolution/0110-distinguish-single-tuple-arg.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0110-distinguish-single-tuple-arg.md"
+    },
+    {
+      "author": "austin-zheng",
+      "authorDisplay": "Austin Zheng",
+      "title": "SE-0111: Remove type system significance of function argument labels",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 1069,
+      "file": "corpus/swift-evolution/0111-remove-arg-label-type-significance.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0111-remove-arg-label-type-significance.md"
+    },
+    {
+      "author": "john-mccall",
+      "authorDisplay": "John McCall",
+      "title": "SE-0176: Enforce Exclusive Access to Memory",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 5080,
+      "file": "corpus/swift-evolution/0176-enforce-exclusive-access-to-memory.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0176-enforce-exclusive-access-to-memory.md"
+    },
+    {
+      "author": "jordan-rose",
+      "authorDisplay": "Jordan Rose",
+      "title": "SE-0192: Handling Future Enum Cases",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 5984,
+      "file": "corpus/swift-evolution/0192-non-exhaustive-enums.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0192-non-exhaustive-enums.md"
+    },
+    {
+      "author": "john-holdsworth",
+      "authorDisplay": "John Holdsworth",
+      "title": "SE-0200: Enhancing String Literals Delimiters to Support Raw Text",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 4295,
+      "file": "corpus/swift-evolution/0200-raw-string-escaping.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0200-raw-string-escaping.md"
+    },
+    {
+      "author": "alejandro-alonso",
+      "authorDisplay": "Alejandro Alonso",
+      "title": "SE-0202: Random Unification",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 3071,
+      "file": "corpus/swift-evolution/0202-random-unification.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0202-random-unification.md"
+    },
+    {
+      "author": "doug-gregor",
+      "authorDisplay": "Doug Gregor",
+      "title": "SE-0244: Opaque Result Types",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 5024,
+      "file": "corpus/swift-evolution/0244-opaque-result-types.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0244-opaque-result-types.md"
+    },
+    {
+      "author": "nate-chandler",
+      "authorDisplay": "Nate Chandler",
+      "title": "SE-0255: Implicit returns from single-expression functions",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 2023,
+      "file": "corpus/swift-evolution/0255-omit-return.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0255-omit-return.md"
+    },
+    {
+      "author": "doug-gregor",
+      "authorDisplay": "Doug Gregor",
+      "title": "SE-0258: Property Wrappers",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 9017,
+      "file": "corpus/swift-evolution/0258-property-wrappers.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0258-property-wrappers.md"
+    },
+    {
+      "author": "john-mccall",
+      "authorDisplay": "John McCall",
+      "title": "SE-0289: Result builders",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 9327,
+      "file": "corpus/swift-evolution/0289-result-builders.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0289-result-builders.md"
+    },
+    {
+      "author": "john-mccall",
+      "authorDisplay": "John McCall",
+      "title": "SE-0296: Async/await",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 6590,
+      "file": "corpus/swift-evolution/0296-async-await.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0296-async-await.md"
+    },
+    {
+      "author": "chris-lattner",
+      "authorDisplay": "Chris Lattner",
+      "title": "SE-0302: Sendable and @Sendable closures",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 6289,
+      "file": "corpus/swift-evolution/0302-concurrent-value-and-concurrent-closures.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0302-concurrent-value-and-concurrent-closures.md"
+    },
+    {
+      "author": "john-mccall",
+      "authorDisplay": "John McCall",
+      "title": "SE-0306: Actors",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 8678,
+      "file": "corpus/swift-evolution/0306-actors.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0306-actors.md"
+    },
+    {
+      "author": "cal-stephens",
+      "authorDisplay": "Cal Stephens",
+      "title": "SE-0345: if let shorthand for shadowing an existing optional variable",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 2555,
+      "file": "corpus/swift-evolution/0345-if-let-shorthand.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0345-if-let-shorthand.md"
+    },
+    {
+      "author": "michael-gottesman",
+      "authorDisplay": "Michael Gottesman",
+      "title": "SE-0377: borrowing and consuming parameter ownership modifiers",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 4445,
+      "file": "corpus/swift-evolution/0377-parameter-ownership-modifiers.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0377-parameter-ownership-modifiers.md"
+    },
+    {
+      "author": "doug-gregor",
+      "authorDisplay": "Doug Gregor",
+      "title": "SE-0382: Expression Macros",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 6745,
+      "file": "corpus/swift-evolution/0382-expression-macros.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0382-expression-macros.md"
+    },
+    {
+      "author": "joe-groff",
+      "authorDisplay": "Joe Groff",
+      "title": "SE-0390: Noncopyable structs and enums",
+      "translator": null,
+      "licenseNote": "Apache License 2.0 with Runtime Library Exception (swift-evolution repository)",
+      "wordCount": 11087,
+      "file": "corpus/swift-evolution/0390-noncopyable-structs-and-enums.md",
+      "sourceUrl": "https://raw.githubusercontent.com/swiftlang/swift-evolution/main/proposals/0390-noncopyable-structs-and-enums.md"
+    }
+  ],
+  "totalWords": 94208
+}

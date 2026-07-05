@@ -36,6 +36,15 @@ export const PRICING: Record<string, { inPerMTok: number; outPerMTok: number }> 
   "openai/gpt-oss-120b": { inPerMTok: 0.15, outPerMTok: 0.6 },
 };
 
+/**
+ * Reasoning models emit thinking tokens that Groq mixes into content unless
+ * `reasoning_format: "hidden"` is sent — but non-reasoning models (the Llama
+ * family) reject that parameter with a 400. Verified live in both directions.
+ */
+export function isReasoningModel(model: string): boolean {
+  return model.includes("gpt-oss") || model.includes("qwen") || model.includes("deepseek");
+}
+
 export function computeCostUsd(
   model: string,
   inputTokens: number,

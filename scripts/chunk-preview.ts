@@ -1,15 +1,16 @@
 /**
  * Chunk-preview CLI (§17 P2):
  *   pnpm chunks --work republic --sample 10
+ *   pnpm chunks --pack swift-evolution --work async
  *
- * Fuzzy-matches --work against corpus/manifest.json, chunks the cleaned text
+ * Fuzzy-matches --work against the pack's manifest, chunks the cleaned text
  * with the pack's per-author rules, prints distribution stats and a sample of
  * passages. This output is what HUMAN GATE H1 reviews.
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
-import { philosophyPack } from "../domain-packs/philosophy/pack";
+import { getPack } from "../domain-packs";
 import { chunkWork } from "../lib/chunking";
 
 interface ManifestWork {
@@ -23,31 +24,42 @@ async function main() {
   const { values } = parseArgs({
     options: {
       work: { type: "string" },
+      pack: { type: "string", default: "philosophy" },
       sample: { type: "string", default: "10" },
     },
   });
   if (!values.work) {
-    console.error("usage: pnpm chunks --work <name> [--sample N]");
+    console.error("usage: pnpm chunks [--pack <id>] --work <name> [--sample N]");
     process.exit(1);
   }
+  const pack = getPack(values.pack ?? "philosophy");
 
   const root = path.join(import.meta.dirname ?? __dirname, "..");
-  const manifest = JSON.parse(
-    await readFile(path.join(root, "corpus", "manifest.json"), "utf8"),
-  ) as { works: ManifestWork[] };
+  // packs own corpus/<packId>/manifest.json; philosophy predates that layout
+  const manifestPath = await (async () => {
+    const perPack = path.join(root, "corpus", pack.id, "manifest.json");
+    try {
+      await readFile(perPack, "utf8");
+      return perPack;
+    } catch {
+      return path.join(root, "corpus", "manifest.json");
+    }
+  })();
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as {
+    works: ManifestWork[];
+  };
 
   const needle = values.work.toLowerCase();
   const work = manifest.works.find((w) =>
     w.title.toLowerCase().includes(needle) || w.file.includes(needle),
   );
   if (!work) {
-    console.error(`No work matching "${values.work}" in corpus/manifest.json`);
+    console.error(`No work matching "${values.work}" in ${manifestPath}`);
     process.exit(1);
   }
 
   const rules =
-    philosophyPack.chunking.perAuthor?.[work.author] ??
-    philosophyPack.chunking.default;
+    pack.chunking.perAuthor?.[work.author] ?? pack.chunking.default;
   const source = await readFile(path.join(root, work.file), "utf8");
   const passages = chunkWork(source, rules);
 

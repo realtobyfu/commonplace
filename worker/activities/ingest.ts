@@ -81,16 +81,26 @@ export async function noteResumedWorkOnBoot(): Promise<void> {
 }
 
 /**
- * Upsert works rows from corpus/manifest.json for a pack. Returns the works
- * in shelf order.
+ * Upsert works rows from the pack's manifest. Packs own their manifest at
+ * corpus/<packId>/manifest.json; corpus/manifest.json is the legacy location
+ * used by the first (philosophy) pack's fetch script.
  */
 export async function preparePack(input: {
   packId: string;
   workspaceId: string;
 }): Promise<Array<{ workId: string; title: string; author: string }>> {
-  const manifest = JSON.parse(
-    await readFile(path.join(CORPUS_ROOT, "manifest.json"), "utf8"),
-  ) as { works: ManifestWork[] };
+  const manifestPath = await (async () => {
+    const perPack = path.join(CORPUS_ROOT, input.packId, "manifest.json");
+    try {
+      await readFile(perPack, "utf8");
+      return perPack;
+    } catch {
+      return path.join(CORPUS_ROOT, "manifest.json");
+    }
+  })();
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as {
+    works: ManifestWork[];
+  };
 
   const out: Array<{ workId: string; title: string; author: string }> = [];
   for (const w of manifest.works) {

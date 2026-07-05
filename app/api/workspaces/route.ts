@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { Client, Connection } from "@temporalio/client";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { getPack } from "@/domain-packs";
 import { db, schema } from "@/lib/db";
 
@@ -20,19 +20,35 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Unknown pack: ${packId}` }, { status: 400 });
   }
 
+  const ingested = await db.query.works.findFirst({
+    where: eq(schema.works.packId, packId),
+  });
+  const needsIngestion = !ingested || ingested.status !== "ingested";
+
+  // A fresh workspace on an already-ingested pack inherits the pack's
+  // starter prompts (they're generated once, at the end of ingestion, and
+  // stored on the workspace that ran it).
+  let starterPrompts: unknown = null;
+  if (!needsIngestion) {
+    const previous = await db.query.workspaces.findMany({
+      where: eq(schema.workspaces.packId, packId),
+      orderBy: desc(schema.workspaces.createdAt),
+      limit: 5,
+    });
+    starterPrompts =
+      previous.find(
+        (w) => Array.isArray(w.starterPrompts) && w.starterPrompts.length > 0,
+      )?.starterPrompts ?? null;
+  }
+
   const inserted = await db
     .insert(schema.workspaces)
-    .values({ packId, promiseLine: pack.promiseLine })
+    .values({ packId, promiseLine: pack.promiseLine, starterPrompts })
     .returning();
   const workspace = inserted[0];
   if (!workspace) {
     return NextResponse.json({ error: "Workspace insert failed" }, { status: 500 });
   }
-
-  const ingested = await db.query.works.findFirst({
-    where: eq(schema.works.packId, packId),
-  });
-  const needsIngestion = !ingested || ingested.status !== "ingested";
 
   let ingestJobId: string | null = null;
   if (needsIngestion) {

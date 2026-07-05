@@ -60,17 +60,24 @@ function splitBlocks(source: string): Block[] {
 }
 
 /**
- * A heading in a Gutenberg plaintext is a short, standalone, mostly-uppercase
- * line ("BOOK IV.", "CHAPTER I. OF SPACE.", "FIRST PART. THE THREE
- * METAMORPHOSES.").
+ * A heading is either a Gutenberg-plaintext style short, standalone,
+ * mostly-uppercase line ("BOOK IV.", "CHAPTER I. OF SPACE.") or a markdown
+ * ATX heading ("## Proposed solution"). Format detection, not domain logic —
+ * which sections to skip stays in the pack config.
  */
 function isHeading(block: Block): boolean {
   const t = block.text.trim();
   if (t.includes("\n") || t.length > 90) return false;
+  if (/^#{1,6}\s+\S/.test(t)) return true;
   const letters = t.replace(/[^a-zA-Z]/g, "");
   if (letters.length === 0) return false;
   const upper = letters.replace(/[^A-Z]/g, "");
   return upper.length / letters.length > 0.9;
+}
+
+/** Heading text as stored in the breadcrumb — markdown markers stripped. */
+function headingText(block: Block): string {
+  return block.text.trim().replace(/^#{1,6}\s+/, "");
 }
 
 /**
@@ -98,7 +105,7 @@ function contentBlocks(source: string, rules: ChunkingRules): ContentBlock[] {
 
   for (const block of splitBlocks(source)) {
     if (isHeading(block)) {
-      heading = block.text.trim();
+      heading = headingText(block);
       skipping = skipPatterns.some((re) => re.test(heading ?? ""));
       continue;
     }
