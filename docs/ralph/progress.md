@@ -303,3 +303,35 @@ deep-linking to Jaeger), and the settings drawer grew the §15 SPEND section
 Typecheck/lint/38 tests green. Build total so far: $0.24 of the $100
 acceptance ceiling. Remaining for P8 proper: session-persistence pass,
 starter-prompt empty-state check post-ingestion, then STOP → H2 + H7.
+
+## P9 — second pack proves the architecture generalizes (2026-07-05)
+
+The Swift Evolution pack: 20 proposals (94K words, Swift 3→6, agent-fetched
+with per-proposal authorship and Apache-2.0 license notes) ingested through
+the *identical* pipeline that read the philosophy canon. Produced 8 concept
+cards — concurrency, actors, ownership, async/await, result builders,
+Sendable, macros, and a "source compatibility" card synthesized across 8
+distinct proposal authors — plus 6 genuinely sharp Swift-specific starter
+prompts. Verified live in the browser: same three-surface UI, shelf now
+grouped by proposal author (Lattner, Gregor, Abrahams…), "Proposal"
+vocabulary, its own promise line. **Zero code changes outside domain-packs/
+and the corpus** — the P9 DONE criterion, met exactly.
+
+Generalization work, all format-detection not domain logic: markdown ATX
+headings (`##`) recognized alongside Gutenberg-uppercase headings; per-pack
+manifests at corpus/<packId>/manifest.json with a legacy fallback for
+philosophy; chunk-preview grew a `--pack` flag. Two spec-completeness fixes
+landed alongside: a fresh workspace on an already-ingested pack now inherits
+that pack's starter prompts (acceptance criterion 3 — verified: new
+philosophy workspace got all 6 and skipped re-ingestion), and one more live
+Groq quirk — `reasoning_format` 400s on non-reasoning (Llama) models — gated
+by model family.
+
+**H2 kill-test passed for real on this run.** SIGKILL'd the worker
+mid-summarization (87 swift summaries in), restarted it: exactly one quiet
+"resumed after an interruption" note fired at boot, Temporal's heartbeat
+timeout retried the interrupted batch, summarization continued past 87 with
+zero duplicate summaries (the passage-id PK plus idempotent upserts holding).
+Total build spend through P9: **$0.26** of the $100 ceiling. Remaining open
+gates: H2 design *review* (mechanics proven; Tobias confirms the UX) and H7
+(promise line). 38 tests green.
