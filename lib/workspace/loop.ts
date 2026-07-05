@@ -1,4 +1,5 @@
 import { and, asc, cosineDistance, eq, ilike, inArray, isNotNull, or, sql } from "drizzle-orm";
+import { trace } from "@opentelemetry/api";
 import { getPack } from "@/domain-packs";
 import { db, schema } from "@/lib/db";
 import { chat, chatStream, embed } from "@/lib/llm";
@@ -44,6 +45,20 @@ export type LoopEvent =
 
 const ROUTER_PICK_CAP = 4;
 const RETRIEVAL_TOP_K = 6;
+
+/** Timeline rows (§14): meaningful loop steps mirror into `events`. */
+async function emitTimelineEvent(
+  workspaceId: string,
+  kind: string,
+  domainMessage: string,
+): Promise<void> {
+  await db.insert(schema.events).values({
+    workspaceId,
+    kind,
+    domainMessage,
+    otelTraceId: trace.getActiveSpan()?.spanContext().traceId ?? null,
+  });
+}
 
 /** §11 step 1 — the router decides what the answer needs. */
 async function routeMessage(input: {
@@ -294,6 +309,16 @@ export async function runConversationTurn(input: {
     content: message,
   });
 
+  await emitTimelineEvent(
+    workspaceId,
+    "router",
+    required.length === 0
+      ? "Looked over the shelf — nothing there covers this."
+      : retrieved
+        ? `Retrieved ${required.length} passage${required.length === 1 ? "" : "s"} — no concept card covered this.`
+        : `Chose ${required.length} source${required.length === 1 ? "" : "s"} from the shelf, starting with *${required[0]?.title}*.`,
+  );
+
   if (required[0]) {
     emit({
       type: "status",
@@ -395,6 +420,12 @@ export async function runConversationTurn(input: {
       });
     }
   }
+
+  await emitTimelineEvent(
+    workspaceId,
+    "synthesis",
+    `Answered with ${provenance.length} citation${provenance.length === 1 ? "" : "s"}.`,
+  );
 
   emit({ type: "done", messageId, content: clean, provenance });
 }

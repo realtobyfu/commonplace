@@ -22,6 +22,25 @@ body {
   font-family: var(--font-ui);
 }
 
+/* §13.2 — the one place the motion budget is spent: a card unfolds into the
+   working set over ~400ms. Condensing is the same curve reversed (driven by
+   the max-height/opacity transition on the card). Reduced motion collapses
+   both to a crossfade via the global rule below. */
+@keyframes unfold {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 6rem;
+    opacity: 1;
+  }
+}
+
+.card-unfold {
+  animation: unfold 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

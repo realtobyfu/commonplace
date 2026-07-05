@@ -49,6 +49,7 @@ interface ConversationProps {
   pendingInterrupt: PendingInterrupt | null;
   onApproveInterrupt: () => void;
   onCancelInterrupt: () => void;
+  onChipClick: (passageId: string) => void;
 }
 
 const BEHAVIOR_LABEL: Record<string, string> = {
@@ -75,18 +76,26 @@ function Emphasized({ text }: { text: string }) {
   );
 }
 
-function ProvenanceChips({ chips }: { chips: ProvenanceChipData[] }) {
+function ProvenanceChips({
+  chips,
+  onChipClick,
+}: {
+  chips: ProvenanceChipData[];
+  onChipClick: (passageId: string) => void;
+}) {
   if (chips.length === 0) return null;
   return (
     <div className="mt-2.5 flex flex-wrap gap-1.5">
       {chips.map((chip) => (
-        <span
+        <button
           key={chip.passageId}
-          title={`${chip.author}, ${chip.workTitle} §${chip.ordinal}`}
-          className="rounded-full bg-verdigris-wash px-2.5 py-1 font-[family-name:var(--font-mono)] text-[10px] text-verdigris"
+          type="button"
+          onClick={() => onChipClick(chip.passageId)}
+          title={`${chip.author}, ${chip.workTitle} §${chip.ordinal} — open the passage`}
+          className="rounded-full bg-verdigris-wash px-2.5 py-1 font-[family-name:var(--font-mono)] text-[10px] text-verdigris transition-colors hover:bg-verdigris hover:text-white"
         >
           {chip.workTitle} §{chip.ordinal}
-        </span>
+        </button>
       ))}
     </div>
   );
@@ -103,6 +112,7 @@ export function Conversation({
   pendingInterrupt,
   onApproveInterrupt,
   onCancelInterrupt,
+  onChipClick,
 }: ConversationProps) {
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -178,7 +188,7 @@ export function Conversation({
                     <span className="text-ink/35">…</span>
                   )}
                 </p>
-                <ProvenanceChips chips={m.provenance} />
+                <ProvenanceChips chips={m.provenance} onChipClick={onChipClick} />
               </div>
             ))}
           </div>

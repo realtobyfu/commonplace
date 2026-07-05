@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { WorkspaceState } from "@/lib/workspace/state";
 import type { WorkspaceSettings } from "@/lib/workspace/settings";
+import { ActivityTimeline } from "./ActivityTimeline";
 import { Conversation, type ChatMessage, type PendingInterrupt } from "./Conversation";
 import { MemoryPanel } from "./MemoryPanel";
+import { PassageOverlay, type PassageDetail } from "./PassageOverlay";
 import { SettingsDrawer } from "./SettingsDrawer";
 import { Shelf } from "./Shelf";
 
@@ -58,7 +60,11 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
   const [busy, setBusy] = useState(false);
   const [settings, setSettings] = useState<WorkspaceSettings>(state.settings);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [timelineOpen, setTimelineOpen] = useState(false);
   const [pendingInterrupt, setPendingInterrupt] = useState<PendingInterrupt | null>(null);
+  const [flashItemId, setFlashItemId] = useState<string | null>(null);
+  const [openPassage, setOpenPassage] = useState<PassageDetail | null>(null);
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const refreshState = useCallback(async () => {
     const res = await fetch(`/api/w/${state.workspace.id}/state`).catch(() => null);
@@ -68,6 +74,19 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
     setBudget(fresh.budget);
     setRecentOps(fresh.recentOps);
   }, [state.workspace.id]);
+
+  /**
+   * §11 step 2: the panel animates while the answer streams. memory_op
+   * frames arrive in a burst before the first answer_delta; a short debounce
+   * coalesces them into one working-set refresh so cards unfold/condense
+   * mid-stream instead of at turn end.
+   */
+  const scheduleRefresh = useCallback(() => {
+    if (refreshTimer.current) clearTimeout(refreshTimer.current);
+    refreshTimer.current = setTimeout(() => {
+      void refreshState();
+    }, 150);
+  }, [refreshState]);
 
   const send = useCallback(
     async (text: string, opts: { approveLargeLoads?: boolean } = {}) => {
@@ -141,6 +160,7 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
                   ...prev,
                 ].slice(0, 6),
               );
+              scheduleRefresh(); // cards unfold/condense while the answer streams
             } else if (frame.type === "answer_delta") {
               setStatusLine(null);
               setMessages((prev) =>
@@ -205,7 +225,30 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
         void refreshState();
       }
     },
-    [busy, refreshState, state.workspace.id],
+    [busy, refreshState, scheduleRefresh, state.workspace.id],
+  );
+
+  /**
+   * §13.3: clicking a provenance chip opens the passage and flashes its
+   * parent card in the panel (when one of the citing cards is in memory).
+   */
+  const openChip = useCallback(
+    async (passageId: string) => {
+      const res = await fetch(`/api/passages/${passageId}`).catch(() => null);
+      if (!res?.ok) return;
+      const detail = (await res.json()) as PassageDetail;
+      setOpenPassage(detail);
+      const inMemory = workingSet.find(
+        (i) =>
+          (i.itemType === "card" && detail.cardIds.includes(i.itemId)) ||
+          (i.itemType === "passage" && i.itemId === passageId),
+      );
+      if (inMemory) {
+        setFlashItemId(inMemory.itemId);
+        setTimeout(() => setFlashItemId(null), 1600);
+      }
+    },
+    [workingSet],
   );
 
   const memoryOp = useCallback(
@@ -246,6 +289,7 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
         pendingInterrupt={pendingInterrupt}
         onApproveInterrupt={approveInterrupt}
         onCancelInterrupt={cancelInterrupt}
+        onChipClick={openChip}
       />
       <MemoryPanel
         cards={workingSet.map((i) => ({
@@ -260,6 +304,8 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
         recentOps={recentOps}
         onOp={memoryOp}
         onOpenSettings={() => setSettingsOpen(true)}
+        onOpenTimeline={() => setTimelineOpen(true)}
+        flashItemId={flashItemId}
       />
       {settingsOpen && (
         <SettingsDrawerHost
@@ -271,6 +317,17 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
             setBudget((b) => ({ ...b, total: s.tokenBudget }));
           }}
         />
+      )}
+      {timelineOpen && (
+        <div className="fixed top-0 right-0 z-20 h-screen w-[340px] border-l border-structure-strong">
+          <ActivityTimeline
+            workspaceId={state.workspace.id}
+            onClose={() => setTimelineOpen(false)}
+          />
+        </div>
+      )}
+      {openPassage && (
+        <PassageOverlay passage={openPassage} onClose={() => setOpenPassage(null)} />
       )}
     </div>
   );

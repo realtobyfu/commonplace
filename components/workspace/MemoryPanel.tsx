@@ -1,12 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 /**
  * The memory panel (§13.2) — the signature surface. Budget meter, cards in
- * three visual states with a kebab menu for pin/evict/hydrate, and the op
- * feed. When nothing has been hydrated yet it shows the §13.4 ghost-card
- * empty state. Card state transitions carry duration classes so the P7
- * condense/unfold choreography lands on this same markup; reduced motion is
- * handled globally (app/globals.css).
+ * three visual states, drill-down (card → underlying passages → exact text),
+ * the op feed, and the condense/unfold choreography: hydration unfolds a
+ * card over ~400ms, eviction condenses it on the same curve, and a
+ * simultaneous swap reads as one motion. Drop target for drag-from-shelf.
+ * Reduced motion falls back to a crossfade (global rule in globals.css).
  */
 
 export interface WorkingMemoryCard {
@@ -24,6 +26,15 @@ interface RecentOp {
   createdAt: string;
 }
 
+interface DrillPassage {
+  passageId: string;
+  ordinal: number;
+  heading: string | null;
+  workTitle: string;
+  author: string;
+  text: string;
+}
+
 interface MemoryPanelProps {
   cards: WorkingMemoryCard[];
   budget: { used: number; total: number };
@@ -34,7 +45,12 @@ interface MemoryPanelProps {
     itemId: string,
   ) => void;
   onOpenSettings: () => void;
+  onOpenTimeline: () => void;
+  /** Set briefly when a provenance chip names a card in the working set. */
+  flashItemId: string | null;
 }
+
+const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 function formatRelativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -82,34 +98,69 @@ function GhostCards() {
 
 function Card({
   card,
+  isNew,
+  flashing,
+  expanded,
+  onToggleExpand,
   onOp,
 }: {
   card: WorkingMemoryCard;
+  isNew: boolean;
+  flashing: boolean;
+  expanded: boolean;
+  onToggleExpand: () => void;
   onOp: MemoryPanelProps["onOp"];
 }) {
   const isCompressed = card.state === "compressed";
   const isPinned = card.state === "pinned";
+  const [passages, setPassages] = useState<DrillPassage[] | null>(null);
+  const [openPassage, setOpenPassage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!expanded || passages !== null) return;
+    let cancelled = false;
+    fetch(`/api/items/${card.itemType}/${card.id}/passages`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { items: DrillPassage[] } | null) => {
+        if (!cancelled && data) setPassages(data.items);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [expanded, passages, card.itemType, card.id]);
+
+  const maxHeight = expanded ? "26rem" : isCompressed ? "2.25rem" : "6rem";
 
   return (
     <div
-      className={`group rounded-sm border px-3.5 py-3 shadow-[0_1px_0_0_rgba(31,35,40,0.03)] transition-all duration-300 ease-out ${
+      className={`group rounded-sm border shadow-[0_1px_0_0_rgba(31,35,40,0.03)] ${
         isCompressed
           ? "border-structure bg-transparent opacity-55"
           : isPinned
             ? "border-pin-amber/35 bg-white"
             : "border-structure-strong bg-white"
-      }`}
-      style={{ maxHeight: isCompressed ? "2.25rem" : "6rem", overflow: "hidden" }}
+      } ${flashing ? "ring-2 ring-verdigris" : ""} ${isNew ? "card-unfold" : ""}`}
+      style={{
+        maxHeight,
+        overflow: "hidden",
+        transition: `max-height 400ms ${EASE}, opacity 400ms ${EASE}, box-shadow 300ms ease`,
+      }}
     >
-      <div className="flex items-center justify-between gap-2">
-        <p className="min-w-0 truncate font-[family-name:var(--font-corpus)] text-[15px] text-ink">
+      <div className="flex items-center justify-between gap-2 px-3.5 py-3">
+        <button
+          type="button"
+          onClick={onToggleExpand}
+          className="min-w-0 flex-1 truncate text-left font-[family-name:var(--font-corpus)] text-[15px] text-ink"
+          title={expanded ? "Collapse" : "Show the passages underneath"}
+        >
           {isPinned && (
             <span className="mr-1.5 text-pin-amber" aria-label="Pinned">
               ▪
             </span>
           )}
           {card.title}
-        </p>
+        </button>
         <span className="flex shrink-0 items-center gap-2">
           {!isCompressed && card.passageCount > 0 && (
             <span className="rounded-full bg-verdigris-wash px-1.5 py-0.5 font-[family-name:var(--font-mono)] text-[10px] text-verdigris">
@@ -156,6 +207,57 @@ function Card({
           </span>
         </span>
       </div>
+
+      {expanded && (
+        <div className="max-h-[21rem] overflow-y-auto border-t border-structure px-3.5 py-2.5">
+          {passages === null ? (
+            <p className="text-xs text-ink/45">Opening…</p>
+          ) : openPassage !== null ? (
+            (() => {
+              const p = passages.find((x) => x.passageId === openPassage);
+              if (!p) return null;
+              return (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setOpenPassage(null)}
+                    className="font-[family-name:var(--font-mono)] text-[10px] text-ink/50 uppercase hover:text-ink"
+                  >
+                    ‹ passages
+                  </button>
+                  <p className="mt-1.5 font-[family-name:var(--font-mono)] text-[10px] text-ink/45">
+                    {p.workTitle} §{p.ordinal}
+                    {p.heading ? ` · ${p.heading}` : ""}
+                  </p>
+                  <p className="mt-2 font-[family-name:var(--font-corpus)] text-[13px] leading-relaxed whitespace-pre-wrap text-ink">
+                    {p.text}
+                  </p>
+                </div>
+              );
+            })()
+          ) : (
+            <ul className="space-y-1.5">
+              {passages.map((p) => (
+                <li key={p.passageId}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenPassage(p.passageId)}
+                    className="block w-full text-left"
+                  >
+                    <span className="font-[family-name:var(--font-mono)] text-[10px] text-verdigris">
+                      §{p.ordinal}
+                    </span>{" "}
+                    <span className="font-[family-name:var(--font-corpus)] text-[13px] text-ink/80">
+                      {p.text.slice(0, 90)}
+                      {p.text.length > 90 ? "…" : ""}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -166,8 +268,38 @@ export function MemoryPanel({
   recentOps,
   onOp,
   onOpenSettings,
+  onOpenTimeline,
+  flashItemId,
 }: MemoryPanelProps) {
   const pct = Math.min(100, Math.round((budget.used / budget.total) * 100));
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+
+  // Track which keys were present before this render so a newly hydrated
+  // card plays the unfold entrance exactly once. Uses React's sanctioned
+  // adjust-state-during-render pattern (no refs read in render); `fresh`
+  // persists as state until the next membership change, so the 400ms
+  // animation isn't cut short by re-renders.
+  const [keyState, setKeyState] = useState<{ known: string; fresh: Set<string> }>(
+    () => ({
+      known: cards.map((c) => `${c.itemType}:${c.id}`).sort().join("|"),
+      fresh: new Set<string>(),
+    }),
+  );
+  const currentKnown = cards.map((c) => `${c.itemType}:${c.id}`).sort().join("|");
+  if (currentKnown !== keyState.known) {
+    const previous = new Set(keyState.known.split("|"));
+    setKeyState({
+      known: currentKnown,
+      fresh: new Set(
+        cards
+          .map((c) => `${c.itemType}:${c.id}`)
+          .filter((k) => !previous.has(k)),
+      ),
+    });
+  }
+  const newKeys = keyState.fresh;
+
   const ordered = [...cards].sort((a, b) => {
     const rank = (c: WorkingMemoryCard) =>
       c.state === "pinned" ? 0 : c.state === "hydrated" ? 1 : 2;
@@ -175,16 +307,52 @@ export function MemoryPanel({
   });
 
   return (
-    <aside className="relative flex w-[340px] shrink-0 flex-col border-l border-structure-strong bg-paper-recessed">
+    <aside
+      className={`relative flex w-[340px] shrink-0 flex-col border-l border-structure-strong bg-paper-recessed transition-colors ${
+        dragOver ? "bg-verdigris-wash" : ""
+      }`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        try {
+          const data = JSON.parse(e.dataTransfer.getData("application/json")) as {
+            itemType?: string;
+            itemId?: string;
+          };
+          if (data.itemType && data.itemId) {
+            onOp("hydrate", data.itemType, data.itemId);
+          }
+        } catch {
+          // not one of ours
+        }
+      }}
+    >
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-baseline justify-between">
           <h2 className="text-xs font-semibold tracking-[0.08em] text-ink/60 uppercase">
             Working memory
           </h2>
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2.5">
             <span className="font-[family-name:var(--font-mono)] text-[10px] text-ink/35">
               {pct}%
             </span>
+            <button
+              type="button"
+              onClick={onOpenTimeline}
+              aria-label="Activity timeline"
+              title="Activity"
+              className="text-ink/35 hover:text-ink"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
+              </svg>
+            </button>
             <button
               type="button"
               onClick={onOpenSettings}
@@ -216,10 +384,23 @@ export function MemoryPanel({
         {ordered.length === 0 ? (
           <GhostCards />
         ) : (
-          <div className="space-y-2.5">
-            {ordered.map((c) => (
-              <Card key={`${c.itemType}:${c.id}`} card={c} onOp={onOp} />
-            ))}
+          <div className="space-y-2.5 pb-4">
+            {ordered.map((c) => {
+              const key = `${c.itemType}:${c.id}`;
+              return (
+                <Card
+                  key={key}
+                  card={c}
+                  isNew={newKeys.has(key)}
+                  flashing={flashItemId === c.id}
+                  expanded={expandedKey === key}
+                  onToggleExpand={() =>
+                    setExpandedKey((k) => (k === key ? null : key))
+                  }
+                  onOp={onOp}
+                />
+              );
+            })}
           </div>
         )}
       </div>

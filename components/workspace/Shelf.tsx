@@ -103,6 +103,14 @@ export function Shelf({ works, workLabel }: ShelfProps) {
                     <li
                       key={w.id}
                       draggable={w.status === "ingested"}
+                      onDragStart={(e) => {
+                        // drag a work onto the memory panel → hydrate (§13.2)
+                        e.dataTransfer.setData(
+                          "application/json",
+                          JSON.stringify({ itemType: "work_summary", itemId: w.id }),
+                        );
+                        e.dataTransfer.effectAllowed = "copy";
+                      }}
                       title={`${workLabel}: ${w.title} — ${statusWord(w.status)}`}
                       className={`group flex items-center gap-2 rounded-sm px-1.5 -mx-1.5 py-1 font-[family-name:var(--font-corpus)] text-[15px] ${
                         active ? "bg-verdigris-wash" : ""

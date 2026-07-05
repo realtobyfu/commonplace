@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { NEVER_ASK, type WorkspaceSettings } from "@/lib/workspace/settings";
+import { CostsSection } from "./CostsSection";
 
 /**
  * Memory settings drawer — the H3/H5 tunables (§10.2 budget, staleness
@@ -147,6 +148,13 @@ export function SettingsDrawer({
             )}
           </div>
         </Field>
+
+        <div className="border-t border-structure pt-5">
+          <h3 className="pb-3 text-xs font-semibold tracking-[0.08em] text-ink/60 uppercase">
+            Spend
+          </h3>
+          <CostsSection />
+        </div>
       </div>
 
       <div className="border-t border-structure-strong px-5 py-4">

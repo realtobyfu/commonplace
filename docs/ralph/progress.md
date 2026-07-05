@@ -266,3 +266,40 @@ One more live artifact caught and fixed along the way: gpt-oss-120b sometimes
 emits fullwidth-bracket ordinal citations (【p:30】); the strip regex now
 handles that variant alongside the ASCII forms. 38 tests green. Remaining
 open gates: H2 (progress-design review) and H7 (promise line), both in P8.
+
+## P7 + P8 plumbing — choreography, drill-down, timeline, costs (2026-07-05)
+
+Split across two parallel workstreams: a background agent built the
+self-contained new files (GET /api/w/:id/timeline merging events+memory_ops,
+GET /api/costs with per-job aggregation, ActivityTimeline drawer,
+CostsSection) while the panel choreography was built inline — clean split, no
+file conflicts, one integration pass.
+
+P7, all verified live in the browser against real data:
+- **Condense/unfold choreography**: 400ms cubic-bezier(0.22,1,0.36,1) on
+  max-height+opacity; newly hydrated cards play a one-time `unfold` entrance
+  (membership tracked via React's adjust-state-during-render pattern after
+  the compiler lint rejected the ref-in-render version). Reduced motion
+  degrades to crossfade via the existing global rule.
+- **Panel animates mid-stream** (§11 step 2, previously missed): memory_op
+  SSE frames now debounce-trigger a working-set refresh, so cards unfold
+  *while* the answer streams — watched "About The Social Contract &
+  Discourses" enter the panel live during the Rousseau answer.
+- **Drill-down** (card → passages → exact text) via new
+  /api/items/:type/:id/passages; expanded "the categorical imperative" to
+  its real §30 Kant passage in the panel.
+- **Provenance chip → passage overlay + parent-card flash** via new
+  /api/passages/:id (returns citing cardIds); chip opened Schopenhauer §474
+  with full source text in Newsreader.
+- **Drag-from-shelf → hydrate**: shelf works carry a JSON dataTransfer
+  payload; the panel is a drop target with a verdigris-wash hover state.
+
+P8 plumbing: activity timeline drawer (clock icon; §14 story now real — the
+loop writes `router` and `synthesis` event rows with trace ids, so a turn
+reads "Chose 1 source from the shelf, starting with *About The Social
+Contract & Discourses*" → ops → "Answered with N citations", each row
+deep-linking to Jaeger), and the settings drawer grew the §15 SPEND section
+($0.24 of $25.00 live, per-job table: 3,291 summarize calls = $0.183).
+Typecheck/lint/38 tests green. Build total so far: $0.24 of the $100
+acceptance ceiling. Remaining for P8 proper: session-persistence pass,
+starter-prompt empty-state check post-ingestion, then STOP → H2 + H7.
