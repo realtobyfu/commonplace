@@ -14,29 +14,80 @@ memory here is the assembled prompt context on today's models — this is a
 design prototype for the long-context world, built honestly on the current
 one.
 
+## Retrieval-era vs. memory-era UX
+
+Most LLM products treat context as invisible plumbing: every question triggers
+a fresh retrieval pass, top-k chunks are stuffed into the prompt, and the
+state evaporates between turns. The user never learns what the model was
+looking at, so they can't correct it when it looks at the wrong thing.
+
+Commonplace inverts that. The working set **persists** — across turns and
+across sessions — and it's **visible and steerable**: the panel shows every
+card the model holds, the agent narrates each hydration and eviction in plain
+language, pins are inviolable, and provenance chips link every claim to the
+exact passages that were in memory when the sentence was written. Context
+stops being plumbing and becomes the product surface.
+
+Both eras coexist honestly in this codebase. When a question is covered by a
+concept card, the router hydrates it — that's the memory era. When nothing
+covers it, the app falls back to pgvector similarity over passage summaries
+and *says so* in the op feed ("retrieved; no concept card covered this") —
+that's the retrieval era, kept as a labeled exception path rather than the
+architecture.
+
 ## Quickstart
 
-Four processes, one terminal each:
+Four long-running processes, one terminal each — the corpus texts and
+manifests are already checked into `corpus/`, so no fetch step is needed on
+a fresh clone.
 
 ```sh
 # 0. one-time setup
-cp .env.example .env          # add your ANTHROPIC_API_KEY
+cp .env.example .env          # add your GROQ_API_KEY (free: console.groq.com)
 pnpm install
 docker compose up -d          # postgres (pgvector) + jaeger
 pnpm db:migrate
+```
 
-# 1. Temporal dev server
+```sh
+# 1. Temporal dev server (its own terminal)
 temporal server start-dev
+```
 
-# 2. Temporal worker
+```sh
+# 2. Temporal worker (its own terminal — picks up .env)
 pnpm worker
+```
 
-# 3. Next.js app
+```sh
+# 3. Next.js app (its own terminal)
 pnpm dev
 ```
 
 Verify the plumbing: `pnpm tsx scripts/run-hello.ts` runs a trivial workflow;
 its trace appears in Jaeger at <http://localhost:16686>.
+
+### Open a workspace
+
+The home page (`/`) is a placeholder — the real app lives at `/w/<id>`, and a
+workspace is created via the API (there's no "new workspace" button yet):
+
+```sh
+curl -X POST http://localhost:3000/api/workspaces \
+  -H "content-type: application/json" \
+  -d '{"packId":"philosophy"}'
+```
+
+This returns `{ workspace: { id, ... }, ingestJobId }`. If the pack hasn't
+been ingested yet, `ingestJobId` is non-null — watch it narrate at
+`http://localhost:3000/ingest/<workspace.id>`. Once ingestion finishes (or
+immediately, if it was already done — a fresh workspace on an ingested pack
+inherits its starter prompts and skips re-ingestion), open
+`http://localhost:3000/w/<workspace.id>`.
+
+Swap `"packId":"swift-evolution"` for the second domain pack (P9's
+generalization proof — same UI, Swift Evolution proposals instead of
+philosophy).
 
 ## Corpus
 
@@ -86,6 +137,17 @@ stand in for Hegel (recorded in `corpus/manifest.json`).
   so its provenance fails the hard rule.
 - **Kaufmann's Nietzsche translations** were requested and rejected — still in
   copyright; the PD Common/Zimmern/Samuel/Mencken translations stand.
+
+### Second pack: Swift Evolution
+
+The generalization proof (P9): 20 Swift Evolution proposals (~94K words,
+Swift 3→6) ingested through the identical pipeline — same chunker (markdown
+headings instead of Gutenberg-uppercase ones), same card synthesis, same UI
+with "Proposal" vocabulary from the pack config. Proposal texts are Apache License 2.0 with Runtime Library Exception (from
+[swiftlang/swift-evolution](https://github.com/swiftlang/swift-evolution));
+per-proposal authorship and license notes live in
+`corpus/swift-evolution/manifest.json`. Zero code changes outside
+`domain-packs/` and `corpus/`.
 
 ## Development
 

@@ -76,6 +76,8 @@ export const philosophyPack: DomainPack = {
       "thinkers. For each, label the memory behavior it will trigger:",
       '"cross-thinker" (two authors hydrate side by side), "sequential"',
       '(cards accumulate), or "deep-dive" (one work unfolds).',
+      "The prompt text itself must read as a natural question — never mention",
+      "the label, the workspace, memory, or why the question fits a category.",
       "Output strict JSON: [{prompt, behavior}].",
       "",
       "Concept cards:",

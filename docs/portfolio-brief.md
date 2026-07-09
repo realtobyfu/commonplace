@@ -134,15 +134,19 @@ background regions and making waiting/empty states legible by default.
 
 ## Current build status
 
-12 commits in. Complete: repo skeleton with full observability wiring,
-corpus acquisition and licensing, structure-aware chunking (human-reviewed
-and approved), the full durable ingestion pipeline (built and unit-verified;
-awaiting an API credential to run the live end-to-end pass), the pure memory
-manager, and the full conversation loop (router → memory-plan → streaming
-synthesis → citation extraction) wired to a three-surface workspace UI
-(corpus shelf, conversation, memory panel) — verified live in-browser against
-real ingested data, not mocks. ~4,200 lines of application code, 35 passing
-unit tests. Remaining: a live end-to-end conversation demo (blocked only on
-an API key), the panel's signature condense/unfold animation polish, a
-settings drawer for cost/routing visibility, the second domain-pack proof,
-and final portfolio packaging (README, demo script, license table).
+All ten build phases complete (P0–P10). The full philosophy corpus (18 works,
+3,289 passages) ingested live for **$0.19**; total build spend through the
+whole project ≈ **$0.26** against a $100 ceiling. The second domain pack is
+no longer a stub: 20 Swift Evolution proposals ingested through the identical
+pipeline — same UI, "Proposal" vocabulary, 8 concept cards spanning
+concurrency/actors/ownership — with zero code changes outside `domain-packs/`
+and the corpus, proving the pack architecture generalizes. The
+kill-the-worker resumability test passed for real: SIGKILL mid-summarization,
+restart, exactly one quiet "resumed" note, zero duplicate summaries. Live
+testing surfaced and fixed three production bugs code review would never have
+caught (a reasoning model silently eating its own token budget, hidden
+reasoning leaking into visible answers, cleaned citation text never reaching
+the client). Session persistence verified across a five-day gap: conversation
+and memory state intact on reopen, compressed cards rehydrate on demand.
+38 passing unit tests. Remaining: two human decisions — the H2 progress-design
+sign-off and the final promise line (H7).

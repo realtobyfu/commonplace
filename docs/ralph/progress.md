@@ -335,3 +335,29 @@ zero duplicate summaries (the passage-id PK plus idempotent upserts holding).
 Total build spend through P9: **$0.26** of the $100 ceiling. Remaining open
 gates: H2 design *review* (mechanics proven; Tobias confirms the UX) and H7
 (promise line). 38 tests green.
+
+## P8 close-out + P10 — persistence verified, portfolio wrap (2026-07-09)
+
+The two outstanding P8 items, verified live in the browser. Session
+persistence (acceptance criterion 6): the main workspace reopened after a
+five-day gap with all 16 messages, 14 memory items, and the 56K/80K budget
+meter intact; compressed a card, reloaded the page, the compressed state
+persisted (opacity-55, meter down 652 tokens); clicked hydrate and it
+unfolded back with "You brought *The Wisdom of Life §0* into memory." in the
+op feed — the full leave-and-return loop, real. Post-ingestion empty state
+(§13.4): fresh workspaces on both packs show the promise line, six
+data-driven starter prompts with behavior labels, and ghost cards. Two
+blemishes found and fixed along the way: one generated starter prompt leaked
+taxonomy meta-language ("…why might this be considered a deep-dive…") — both
+packs' `starterPromptGen` templates now forbid mentioning the label, and the
+stored prompts were trimmed; and `*work titles*` rendered as literal
+asterisks in starter-prompt buttons — now rendered through `Emphasized`.
+
+P10: README gained the §11.4 thesis section (retrieval-era vs memory-era UX,
+quoting the fallback's actual op-feed reason) and a Swift Evolution corpus
+section with its Apache-2.0 license basis; `docs/demo-script.md` walks the
+§18 acceptance criteria as five timed demo beats; `docs/ralph/README.md`
+frames this directory as the process appendix; the portfolio brief's stale
+status section was rewritten to the P10 truth. Typecheck/lint/38 tests
+green. Remaining: the two open human gates, H2 (progress-design sign-off)
+and H7 (promise line).

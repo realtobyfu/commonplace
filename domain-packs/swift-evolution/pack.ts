@@ -63,6 +63,8 @@ export const swiftEvolutionPack: DomainPack = {
       'proposals. Label each with the memory behavior it triggers:',
       '"cross-thinker" (two proposals hydrate side by side), "sequential"',
       '(cards accumulate), or "deep-dive" (one proposal unfolds).',
+      "The prompt text itself must read as a natural question — never mention",
+      "the label, the workspace, memory, or why the question fits a category.",
       "Output strict JSON: [{prompt, behavior}].",
       "",
       "Concept cards:",

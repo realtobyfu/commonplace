@@ -164,7 +164,7 @@ export function Conversation({
                       className="block w-full rounded-sm border border-structure-strong bg-white px-4 py-3.5 text-left shadow-[0_1px_0_0_rgba(31,35,40,0.03)] transition-colors hover:border-verdigris/50"
                     >
                       <span className="font-[family-name:var(--font-corpus)] text-[15px] text-ink">
-                        {p.prompt}
+                        <Emphasized text={p.prompt} />
                       </span>
                       <span className="mt-1.5 block font-[family-name:var(--font-mono)] text-[10px] tracking-wide text-verdigris uppercase">
                         {BEHAVIOR_LABEL[p.behavior] ?? p.behavior}
