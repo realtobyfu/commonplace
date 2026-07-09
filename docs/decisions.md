@@ -39,9 +39,15 @@ shipping ~2000-token outliers.
 
 ## H2 — Progress design
 
-**Status: OPEN.** Reviewed after P4 ingest screen is live. Working position:
-reliability machinery invisible; domain-language milestones; quiet "resumed
-after interruption" note as the only failure surface; no percentage bar.
+**Status: DECIDED 2026-07-09 (Tobias).** Confirmed as-is. The working
+position ships unchanged: reliability machinery invisible; domain-language
+milestones ("Finished *The Republic* — 198 passages…"); works checklist,
+milestone ticker, elapsed time, and running cost on the ingest screen; no
+percentage bar. The single permitted failure surface — one quiet "resumed
+after an interruption" note — was proven live by the P9 kill-test (SIGKILL
+mid-summarization → restart → exactly one note, zero duplicate work, zero
+retry exposure). The design was exercised across two full pack ingestions
+before sign-off.
 
 ## H3 — Eviction policy
 
@@ -111,6 +117,12 @@ precisely so the portfolio walkthrough can demo both behaviors on demand.
 
 ## H7 — Promise line
 
-**Status: OPEN.** Draft in use: "A commonplace book that reads for you — six
-thinkers, one working memory, watch it think." Tobias swaps in the winner
-before any demo (P8).
+**Status: DECIDED 2026-07-09 (Tobias).** The draft is the final line:
+
+> **"A commonplace book that reads for you — six thinkers, one working
+> memory, watch it think."**
+
+The spec's plan was ~10 candidates with a swap before any demo; Tobias
+elected to keep the draft, which survived the whole build (it held through
+the corpus rebalance that restored the sixth thinker, and it's what every
+philosophy workspace row already carries). No config or data change needed.
