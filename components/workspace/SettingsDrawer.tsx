@@ -162,7 +162,7 @@ export function SettingsDrawer({
           type="button"
           onClick={save}
           disabled={saving}
-          className="w-full rounded-sm bg-ink py-2 font-[family-name:var(--font-mono)] text-xs tracking-wide text-paper uppercase disabled:opacity-50"
+          className="w-full rounded-sm bg-ink py-2 font-mono text-xs tracking-wide text-paper uppercase disabled:opacity-50"
         >
           {saving ? "Saving…" : "Apply"}
         </button>
@@ -186,7 +186,7 @@ function Field({
     <div>
       <div className="flex items-baseline justify-between">
         <label className="text-sm text-ink">{label}</label>
-        <span className="font-[family-name:var(--font-mono)] text-[10px] text-verdigris">
+        <span className="font-mono text-[10px] text-verdigris">
           {value}
         </span>
       </div>

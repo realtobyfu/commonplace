@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { use, useEffect, useRef, useState } from "react";
 
 /**
@@ -37,7 +38,7 @@ function DomainMessage({ text }: { text: string }) {
     <>
       {parts.map((part, i) =>
         i % 2 === 1 ? (
-          <em key={i} className="font-[family-name:var(--font-corpus)]">
+          <em key={i} className="font-corpus">
             {part}
           </em>
         ) : (
@@ -98,15 +99,32 @@ export default function IngestPage({
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-10 px-8 py-16">
       <header>
-        <h1 className="font-[family-name:var(--font-corpus)] text-3xl">
+        <h1 className="font-corpus text-3xl">
           {done ? "The shelf is ready." : "Reading the corpus…"}
         </h1>
         <p className="mt-2 flex gap-6 text-sm text-ink/60">
           <span>{formatElapsed(elapsed)} elapsed</span>
-          <span className="font-[family-name:var(--font-mono)] text-xs leading-5">
+          <span className="font-mono text-xs leading-5">
             ${costUsd.toFixed(3)} spent
           </span>
         </p>
+        {done && (
+          <Link href={`/w/${workspaceId}`} className="btn-primary mt-5">
+            Enter the workspace
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </Link>
+        )}
       </header>
 
       <section aria-label="Works">
@@ -123,7 +141,7 @@ export default function IngestPage({
                     className="flex items-baseline justify-between gap-4"
                   >
                     <span
-                      className={`font-[family-name:var(--font-corpus)] ${
+                      className={`font-corpus ${
                         w.status === "ingested"
                           ? "text-ink"
                           : READING_STATUSES.has(w.status)
@@ -135,7 +153,7 @@ export default function IngestPage({
                       {READING_STATUSES.has(w.status) ? " …" : ""}
                     </span>
                     {w.passages > 0 && (
-                      <span className="font-[family-name:var(--font-mono)] text-xs text-ink/50">
+                      <span className="font-mono text-xs text-ink/50">
                         {w.passages} passages
                       </span>
                     )}

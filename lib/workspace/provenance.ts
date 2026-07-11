@@ -10,12 +10,21 @@
 
 const MARKER_RE = /\[\[(?:p:)?([0-9a-f-]{36})\]\]/gi;
 
-// Defensive second pass: the model improvises citation shapes that never
-// resolve to a real passage but still leak brackets into the prose. Seen
-// live from gpt-oss-120b: ASCII short-ordinal ([[p:11]]) and fullwidth
-// brackets with an ordinal (【p:30】). Anything shaped like a "p:" citation
-// attempt in either bracket style gets removed.
-const MALFORMED_MARKER_RE = /\[\[p:[^[\]]{0,40}\]\]|【\s*p:[^】]{0,40}】/gi;
+const UUID_RE =
+  /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+
+// Defensive second pass: the model improvises citation shapes that still
+// leak brackets into the prose. Seen live from gpt-oss-120b: ASCII
+// short-ordinal ([[p:11]]), fullwidth brackets with an ordinal (【p:30】),
+// and single-closing-bracket-plus-section shapes ([[p:UUID]§0],
+// [[UUID]§12]). Any "[[…" attempt — with or without the p: prefix —
+// followed by up to 60 non-bracket chars, one or two closing brackets and
+// an optional §N segment is removed. The character class can't cross a
+// bracket, so the pass can't greedily eat surrounding prose; it runs AFTER
+// the well-formed MARKER_RE pass so real [[p:UUID]] citations are always
+// captured first.
+const MALFORMED_MARKER_RE =
+  /\[\[(?:p:)?[^[\]]{1,60}\](?:§\d+)?\]?|【\s*p:[^】]{0,40}】/gi;
 
 export interface StrippedProvenance {
   clean: string;
@@ -34,7 +43,20 @@ export function stripProvenanceMarkers(text: string): StrippedProvenance {
       }
       return "";
     })
-    .replace(MALFORMED_MARKER_RE, "")
+    .replace(MALFORMED_MARKER_RE, (match) => {
+      // A malformed shape can still smuggle a real citation ([[UUID]§12]):
+      // rescue the full UUID so the botched brackets don't cost the reader
+      // the source chip. Truncated/ordinal ids simply strip.
+      const uuid = match.match(UUID_RE);
+      if (uuid) {
+        const lower = uuid[0].toLowerCase();
+        if (!seen.has(lower)) {
+          seen.add(lower);
+          passageIds.push(lower);
+        }
+      }
+      return "";
+    })
     .replace(/[ \t]+([.,;:!?])/g, "$1") // marker removal can orphan a space
     .replace(/,\s*(?=[.,;:!?]|$)/g, "") // or an orphaned separator comma (multiple citations were comma-joined)
     .replace(/[ \t]{2,}/g, " ")

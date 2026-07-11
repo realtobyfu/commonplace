@@ -45,6 +45,41 @@ describe("stripProvenanceMarkers", () => {
     expect(passageIds).toEqual([]);
   });
 
+  it("strips single-closing-bracket §-segment shapes and rescues the UUID", () => {
+    // verified live: gpt-oss-120b emits [[p:UUID]§0] — one closing bracket,
+    // a section segment, then the final bracket. The well-formed pass can't
+    // match it, but the malformed pass should strip it cleanly AND keep the
+    // full UUID as a real citation.
+    const text = `Ressentiment breeds imaginary revenge [[p:${ID_A}]§0] over deeds.`;
+    const { clean, passageIds } = stripProvenanceMarkers(text);
+    expect(clean).toBe("Ressentiment breeds imaginary revenge over deeds.");
+    expect(passageIds).toEqual([ID_A]);
+  });
+
+  it("handles the bare-UUID §-segment variant too", () => {
+    const text = `The forms ground judgment [[${ID_B}]§12].`;
+    const { clean, passageIds } = stripProvenanceMarkers(text);
+    expect(clean).toBe("The forms ground judgment.");
+    expect(passageIds).toEqual([ID_B]);
+  });
+
+  it("strips truncated-UUID §-shapes without inventing a citation", () => {
+    // the live sample: the model truncated the UUID mid-way, so nothing is
+    // resolvable — the whole token must still strip without eating prose.
+    const text =
+      "Slave morality says no [[p:6e9396b4-1c2d-4f5a-8b7c-43b]§0] to the outside.";
+    const { clean, passageIds } = stripProvenanceMarkers(text);
+    expect(clean).toBe("Slave morality says no to the outside.");
+    expect(passageIds).toEqual([]);
+  });
+
+  it("does not eat prose around adjacent malformed markers", () => {
+    const text = `Before [[p:11]§0] middle [[p:${ID_A}]§3] after.`;
+    const { clean, passageIds } = stripProvenanceMarkers(text);
+    expect(clean).toBe("Before middle after.");
+    expect(passageIds).toEqual([ID_A]);
+  });
+
   it("strips fullwidth-bracket ordinal citations the model improvises", () => {
     // verified live: gpt-oss-120b sometimes emits 【p:30】 instead of [[p:uuid]]
     const text = "justice is clarified in the city soul 【p:30】 . And again 【p:31】.";

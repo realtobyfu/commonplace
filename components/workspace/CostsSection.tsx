@@ -55,7 +55,7 @@ export function CostsSection() {
     <div>
       <div className="flex items-baseline justify-between">
         <span className="text-sm text-ink">Spend</span>
-        <span className="font-[family-name:var(--font-mono)] text-[10px] text-ink/50">
+        <span className="font-mono text-[10px] text-ink/50">
           ${data.totalUsd.toFixed(2)} of ${data.capUsd.toFixed(2)}
         </span>
       </div>
@@ -76,13 +76,13 @@ export function CostsSection() {
           <table className="w-full text-xs">
             <thead>
               <tr className="text-ink/40">
-                <th className="pb-1.5 text-left font-normal font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-wide">
+                <th className="pb-1.5 text-left font-normal font-mono text-[10px] uppercase tracking-wide">
                   Job
                 </th>
-                <th className="pb-1.5 text-right font-normal font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-wide">
+                <th className="pb-1.5 text-right font-normal font-mono text-[10px] uppercase tracking-wide">
                   Calls
                 </th>
-                <th className="pb-1.5 text-right font-normal font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-wide">
+                <th className="pb-1.5 text-right font-normal font-mono text-[10px] uppercase tracking-wide">
                   Cost
                 </th>
               </tr>
@@ -90,11 +90,11 @@ export function CostsSection() {
             <tbody>
               {data.byJob.map((j) => (
                 <tr key={j.job} className="border-t border-structure">
-                  <td className="py-1.5 font-[family-name:var(--font-mono)] text-[11px] text-ink/70">
+                  <td className="py-1.5 font-mono text-[11px] text-ink/70">
                     {j.job}
                   </td>
                   <td className="py-1.5 text-right text-ink/60">{j.calls}</td>
-                  <td className="py-1.5 text-right font-[family-name:var(--font-mono)] text-[11px] text-ink/70">
+                  <td className="py-1.5 text-right font-mono text-[11px] text-ink/70">
                     {j.costUsd.toFixed(3)}
                   </td>
                 </tr>

@@ -9,6 +9,8 @@ import { MemoryPanel } from "./MemoryPanel";
 import { PassageOverlay, type PassageDetail } from "./PassageOverlay";
 import { SettingsDrawer } from "./SettingsDrawer";
 import { Shelf } from "./Shelf";
+import { WorkOverlay } from "./WorkOverlay";
+import type { ShelfWork } from "@/lib/workspace/state";
 
 /**
  * The three-surface workspace (§13.1). Client-side owner of live state:
@@ -64,6 +66,7 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
   const [pendingInterrupt, setPendingInterrupt] = useState<PendingInterrupt | null>(null);
   const [flashItemId, setFlashItemId] = useState<string | null>(null);
   const [openPassage, setOpenPassage] = useState<PassageDetail | null>(null);
+  const [openWork, setOpenWork] = useState<ShelfWork | null>(null);
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const refreshState = useCallback(async () => {
@@ -277,7 +280,7 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
 
   return (
     <div className="flex h-screen min-w-[1024px]">
-      <Shelf works={state.shelf} workLabel={workLabel} />
+      <Shelf works={state.shelf} workLabel={workLabel} onOpenWork={setOpenWork} />
       <Conversation
         promiseLine={state.workspace.promiseLine}
         starterPrompts={state.workspace.starterPrompts}
@@ -325,6 +328,20 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
             onClose={() => setTimelineOpen(false)}
           />
         </div>
+      )}
+      {openWork && (
+        <WorkOverlay
+          workId={openWork.id}
+          title={openWork.title}
+          author={openWork.author}
+          // The passage sheet (z-30) opens above the work sheet (z-20).
+          // Both listen for Escape; while a passage is on top, the work
+          // sheet ignores it so one press closes one layer.
+          onClose={() => {
+            if (!openPassage) setOpenWork(null);
+          }}
+          onOpenPassage={openChip}
+        />
       )}
       {openPassage && (
         <PassageOverlay passage={openPassage} onClose={() => setOpenPassage(null)} />

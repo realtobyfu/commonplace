@@ -361,3 +361,40 @@ frames this directory as the process appendix; the portfolio brief's stale
 status section was rewritten to the P10 truth. Typecheck/lint/38 tests
 green. Remaining: the two open human gates, H2 (progress-design sign-off)
 and H7 (promise line).
+
+## Post-spec — the front door, and the fonts that were never there (2026-07-11)
+
+Two workstreams landed together. First, the reading-surfaces polish pass
+that had been sitting uncommitted: RichText (a dependency-free markdown
+subset renderer for model prose, with citation-token lifting and
+half-streamed-token hiding), the WorkOverlay section reader (shelf click →
+per-section summaries → exact passage, layered Escape closing one sheet at
+a time), source reflow in the PassageOverlay (Gutenberg hard wraps
+collapsed to real paragraphs, `_underscores_` rendered as the print
+edition's italics), summary-scaffolding stripping, and a provenance pass
+that rescues real UUIDs out of malformed citation shapes instead of
+discarding them.
+
+Second, the app finally got a front door. `app/page.tsx` was a dead-end
+stub — title, tagline, no way in. It's now the book's front matter: a
+title page (§ ornament, Newsreader at scale, the H7 promise line with
+*reads* in italic), each pack set like a bibliography entry (collation
+line in mono, epigraph, "New workspace" / "Read this corpus"), and
+workspaces as table-of-contents rows — first question, dotted leader,
+marginalia (messages · in-memory count · date). The create → route →
+empty-state loop verified live; the ingest screen now ends in an "Enter
+the workspace" action instead of a dead stop, and the shelf carries a
+quiet wordmark link back home.
+
+Two bugs found under the presentability complaint, both invisible until
+poked. **The entire site's typography was silently broken**: font tokens
+in a plain `@theme` reference next/font variables that live on `<body>`,
+so they resolved empty at `:root` and everything fell back to system sans
+— the "looks very AI" reaction was substantially this. Fixed with `@theme
+inline` plus named utilities (`font-corpus`/`font-ui`/`font-mono`
+replacing the arbitrary-value form repo-wide). And the home loader's
+correlated subqueries: drizzle renders an interpolated outer-table column
+unqualified, so `m.workspace_id = "id"` self-compared inside `messages`
+and every workspace showed zero conversation. Hand-qualified correlation
+fixed it. Typecheck/lint green, 49 tests green, all surfaces verified in
+the browser at 1280px.

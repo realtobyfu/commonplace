@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { RichText } from "@/components/workspace/RichText";
+import { stripSummaryPreamble } from "@/lib/workspace/summaryText";
 
 /**
  * The memory panel (§13.2) — the signature surface. Budget meter, cards in
@@ -52,6 +54,22 @@ interface MemoryPanelProps {
 
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 
+// Mirrors RichText's citation-token shapes (§13.3) so one-line previews can
+// strip [[p:UUID]] / [[p:UUID]§0] / 【p:30】 without pulling in the full
+// block renderer for a single truncated line.
+const CITE_STRIP_RE =
+  /\[\[(?:p:)?[^[\]]{1,60}\](?:§\d+)?\]|【\s*p:[^】]{0,40}】/gi;
+
+/** Plain-text preview: scaffolding preamble out, citation tokens out,
+ *  markdown syntax chars out. */
+function previewText(text: string): string {
+  return stripSummaryPreamble(text)
+    .replace(CITE_STRIP_RE, "")
+    .replace(/[`*_#]|^>\s?/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function formatRelativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
   const min = Math.floor(diffMs / 60_000);
@@ -68,7 +86,7 @@ function Emphasized({ text }: { text: string }) {
     <>
       {parts.map((part, i) =>
         i % 2 === 1 ? (
-          <em key={i} className="font-[family-name:var(--font-corpus)]">
+          <em key={i} className="font-corpus">
             {part}
           </em>
         ) : (
@@ -79,17 +97,64 @@ function Emphasized({ text }: { text: string }) {
   );
 }
 
+/** 12px stroke icon wrapper — card ops and affordance chevrons share it. */
+function Icon({
+  size = 12,
+  className,
+  children,
+}: {
+  size?: number;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      {children}
+    </svg>
+  );
+}
+
+function PinGlyph({ filled = false }: { filled?: boolean }) {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="shrink-0"
+    >
+      <path d="M6 3h12v18l-6-4.5L6 21z" />
+    </svg>
+  );
+}
+
 function GhostCards() {
   return (
     <div className="space-y-3 pt-1">
       {[0, 1, 2].map((i) => (
         <div
           key={i}
-          className="h-16 rounded-sm border border-dashed border-structure-strong bg-ink/[0.025]"
+          className="h-16 rounded-lg border border-dashed border-structure-strong bg-ink/[0.025]"
           style={{ opacity: 0.85 - i * 0.2 }}
         />
       ))}
-      <p className="pt-2 text-xs leading-relaxed text-ink/45">
+      <p className="pt-2 text-xs leading-relaxed text-ink-muted">
         Concepts appear here as the model reads.
       </p>
     </div>
@@ -130,16 +195,86 @@ function Card({
     };
   }, [expanded, passages, card.itemType, card.id]);
 
-  const maxHeight = expanded ? "26rem" : isCompressed ? "2.25rem" : "6rem";
+  // Compressed collapses to a single row; hydrated/pinned carry a second
+  // row (count + ops), so the collapsed clip is taller.
+  const maxHeight = expanded ? "26rem" : isCompressed ? "2.75rem" : "6rem";
+
+  // Ops are ALWAYS rendered (discoverable without hovering), just subdued
+  // until the card is hovered or focused.
+  const opsClass =
+    "flex shrink-0 items-center gap-1 opacity-60 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100";
+
+  const pinOp = isPinned ? (
+    <button
+      type="button"
+      onClick={() => onOp("unpin", card.itemType, card.id)}
+      className="btn-ghost"
+    >
+      <Icon>
+        <path d="M6 3h12v18l-6-4.5L6 21z" />
+        <path d="M4 4l16 16" />
+      </Icon>
+      unpin
+    </button>
+  ) : (
+    <button
+      type="button"
+      onClick={() => onOp("pin", card.itemType, card.id)}
+      className="btn-ghost hover:text-pin-amber"
+    >
+      <Icon>
+        <path d="M6 3h12v18l-6-4.5L6 21z" />
+      </Icon>
+      pin
+    </button>
+  );
+
+  const stateOp = isCompressed ? (
+    <button
+      type="button"
+      onClick={() => onOp("hydrate", card.itemType, card.id)}
+      className="btn-ghost hover:text-verdigris"
+    >
+      <Icon>
+        {/* chevrons-out — the card re-expands into the working set */}
+        <path d="m7 15 5 5 5-5" />
+        <path d="m7 9 5-5 5 5" />
+      </Icon>
+      hydrate
+    </button>
+  ) : !isPinned ? (
+    <button
+      type="button"
+      onClick={() => onOp("evict", card.itemType, card.id)}
+      className="btn-ghost"
+    >
+      <Icon>
+        {/* chevrons-in — the card condenses to a one-line stub */}
+        <path d="m7 20 5-5 5 5" />
+        <path d="m7 4 5 5 5-5" />
+      </Icon>
+      compress
+    </button>
+  ) : null;
+
+  const expandChevron = (
+    <Icon
+      className={`shrink-0 text-ink-faint transition-transform duration-200 ${
+        expanded ? "rotate-180" : ""
+      }`}
+    >
+      <path d="m6 9 6 6 6-6" />
+    </Icon>
+  );
 
   return (
     <div
-      className={`group rounded-sm border shadow-[0_1px_0_0_rgba(31,35,40,0.03)] ${
+      className={`group border ${
         isCompressed
-          ? "border-structure bg-transparent opacity-55"
+          ? "rounded-lg border-dashed border-structure bg-transparent opacity-70"
           : isPinned
-            ? "border-pin-amber/35 bg-white"
-            : "border-structure-strong bg-white"
+            ? "rounded-lg border-structure-strong border-l-2 border-l-pin-amber bg-white shadow-sm"
+            : "rounded-lg border-structure-strong bg-white shadow-sm"
       } ${flashing ? "ring-2 ring-verdigris" : ""} ${isNew ? "card-unfold" : ""}`}
       style={{
         maxHeight,
@@ -147,71 +282,67 @@ function Card({
         transition: `max-height 400ms ${EASE}, opacity 400ms ${EASE}, box-shadow 300ms ease`,
       }}
     >
-      <div className="flex items-center justify-between gap-2 px-3.5 py-3">
-        <button
-          type="button"
-          onClick={onToggleExpand}
-          className="min-w-0 flex-1 truncate text-left font-[family-name:var(--font-corpus)] text-[15px] text-ink"
-          title={expanded ? "Collapse" : "Show the passages underneath"}
-        >
-          {isPinned && (
-            <span className="mr-1.5 text-pin-amber" aria-label="Pinned">
-              ▪
+      {isCompressed ? (
+        /* Compressed (§13.2): a one-line stub — reduced, still legible. */
+        <div className="flex items-center gap-1.5 px-3.5 py-2">
+          <button
+            type="button"
+            onClick={onToggleExpand}
+            className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
+            title={expanded ? "Collapse" : "Show the passages underneath"}
+            aria-expanded={expanded}
+          >
+            <span className="min-w-0 flex-1 truncate font-corpus text-[15px] text-ink-muted">
+              {card.title}
             </span>
-          )}
-          {card.title}
-        </button>
-        <span className="flex shrink-0 items-center gap-2">
-          {!isCompressed && card.passageCount > 0 && (
-            <span className="rounded-full bg-verdigris-wash px-1.5 py-0.5 font-[family-name:var(--font-mono)] text-[10px] text-verdigris">
-              {card.passageCount}p
-            </span>
-          )}
-          <span className="hidden gap-2 group-hover:flex">
-            {isPinned ? (
-              <button
-                type="button"
-                onClick={() => onOp("unpin", card.itemType, card.id)}
-                className="text-[10px] text-ink/50 hover:text-ink"
-              >
-                unpin
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onOp("pin", card.itemType, card.id)}
-                className="text-[10px] text-ink/50 hover:text-pin-amber"
-              >
-                pin
-              </button>
-            )}
-            {isCompressed ? (
-              <button
-                type="button"
-                onClick={() => onOp("hydrate", card.itemType, card.id)}
-                className="text-[10px] text-ink/50 hover:text-verdigris"
-              >
-                hydrate
-              </button>
-            ) : (
-              !isPinned && (
-                <button
-                  type="button"
-                  onClick={() => onOp("evict", card.itemType, card.id)}
-                  className="text-[10px] text-ink/50 hover:text-ink"
-                >
-                  compress
-                </button>
-              )
-            )}
+            {expandChevron}
+          </button>
+          <span className={opsClass}>
+            {pinOp}
+            {stateOp}
           </span>
-        </span>
-      </div>
+        </div>
+      ) : (
+        /* Hydrated / pinned (§13.2): title row + count-and-ops row. */
+        <div className="px-3.5 pt-2.5 pb-2">
+          <button
+            type="button"
+            onClick={onToggleExpand}
+            className="flex w-full items-center gap-1.5 text-left"
+            title={expanded ? "Collapse" : "Show the passages underneath"}
+            aria-expanded={expanded}
+          >
+            {isPinned && (
+              <span className="shrink-0 text-pin-amber" aria-label="Pinned">
+                <PinGlyph filled />
+              </span>
+            )}
+            <span className="min-w-0 flex-1 truncate font-corpus text-[15px] text-ink">
+              {card.title}
+            </span>
+            {expandChevron}
+          </button>
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            {card.passageCount > 0 && (
+              <span
+                className="font-mono text-[10px] text-ink-faint"
+                title={`≈${card.tokenCost.toLocaleString()} tokens in context`}
+              >
+                {card.passageCount} passage{card.passageCount === 1 ? "" : "s"}
+              </span>
+            )}
+            <span className={`ml-auto ${opsClass}`}>
+              {pinOp}
+              {stateOp}
+            </span>
+          </div>
+        </div>
+      )}
 
       {expanded && (
         <div className="max-h-[21rem] overflow-y-auto border-t border-structure px-3.5 py-2.5">
           {passages === null ? (
-            <p className="text-xs text-ink/45">Opening…</p>
+            <p className="text-xs text-ink-faint">Opening…</p>
           ) : openPassage !== null ? (
             (() => {
               const p = passages.find((x) => x.passageId === openPassage);
@@ -221,36 +352,42 @@ function Card({
                   <button
                     type="button"
                     onClick={() => setOpenPassage(null)}
-                    className="font-[family-name:var(--font-mono)] text-[10px] text-ink/50 uppercase hover:text-ink"
+                    className="btn-ghost -ml-1.5"
                   >
-                    ‹ passages
+                    <Icon>
+                      <path d="m15 6-6 6 6 6" />
+                    </Icon>
+                    passages
                   </button>
-                  <p className="mt-1.5 font-[family-name:var(--font-mono)] text-[10px] text-ink/45">
+                  <p className="mt-1.5 font-mono text-[10px] text-ink-faint">
                     {p.workTitle} §{p.ordinal}
                     {p.heading ? ` · ${p.heading}` : ""}
                   </p>
-                  <p className="mt-2 font-[family-name:var(--font-corpus)] text-[13px] leading-relaxed whitespace-pre-wrap text-ink">
-                    {p.text}
-                  </p>
+                  <RichText
+                    text={stripSummaryPreamble(p.text)}
+                    className="mt-2 font-corpus text-[13.5px] leading-relaxed text-ink"
+                  />
                 </div>
               );
             })()
           ) : (
-            <ul className="space-y-1.5">
+            <ul className="space-y-0.5">
               {passages.map((p) => (
                 <li key={p.passageId}>
                   <button
                     type="button"
                     onClick={() => setOpenPassage(p.passageId)}
-                    className="block w-full text-left"
+                    className="-mx-1.5 flex w-[calc(100%+0.75rem)] items-start gap-2 rounded px-1.5 py-1.5 text-left transition-colors hover:bg-paper-recessed"
                   >
-                    <span className="font-[family-name:var(--font-mono)] text-[10px] text-verdigris">
+                    <span className="shrink-0 pt-px font-mono text-[10px] text-verdigris">
                       §{p.ordinal}
-                    </span>{" "}
-                    <span className="font-[family-name:var(--font-corpus)] text-[13px] text-ink/80">
-                      {p.text.slice(0, 90)}
-                      {p.text.length > 90 ? "…" : ""}
                     </span>
+                    <span className="line-clamp-2 min-w-0 flex-1 font-corpus text-[13px] leading-snug text-ink-muted">
+                      {previewText(p.text)}
+                    </span>
+                    <Icon className="mt-0.5 shrink-0 text-ink-faint">
+                      <path d="m9 6 6 6-6 6" />
+                    </Icon>
                   </button>
                 </li>
               ))}
@@ -333,12 +470,12 @@ export function MemoryPanel({
       }}
     >
       <div className="px-5 pt-5 pb-4">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-xs font-semibold tracking-[0.08em] text-ink/60 uppercase">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-semibold tracking-[0.08em] text-ink-muted uppercase">
             Working memory
           </h2>
-          <span className="flex items-center gap-2.5">
-            <span className="font-[family-name:var(--font-mono)] text-[10px] text-ink/35">
+          <span className="flex items-center gap-1">
+            <span className="mr-1 font-mono text-[11px] font-medium text-ink-muted">
               {pct}%
             </span>
             <button
@@ -346,9 +483,9 @@ export function MemoryPanel({
               onClick={onOpenTimeline}
               aria-label="Activity timeline"
               title="Activity"
-              className="text-ink/35 hover:text-ink"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-ink-muted transition-colors hover:bg-paper hover:text-ink"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 7v5l3 2" />
               </svg>
@@ -357,9 +494,9 @@ export function MemoryPanel({
               type="button"
               onClick={onOpenSettings}
               aria-label="Memory settings"
-              className="text-ink/35 hover:text-ink"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-ink-muted transition-colors hover:bg-paper hover:text-ink"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <circle cx="12" cy="12" r="3" />
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </svg>
@@ -375,7 +512,7 @@ export function MemoryPanel({
             style={{ width: `${pct}%` }}
           />
         </div>
-        <p className="mt-1.5 font-[family-name:var(--font-mono)] text-[10px] text-ink/30 transition-colors hover:text-ink/55">
+        <p className="mt-1.5 font-mono text-[10.5px] text-ink-faint">
           {budget.used.toLocaleString()} / {budget.total.toLocaleString()} tokens
         </p>
       </div>
@@ -406,8 +543,11 @@ export function MemoryPanel({
       </div>
 
       <div className="border-t border-structure-strong px-5 py-4">
+        <p className="mb-2 font-mono text-[10px] tracking-wide text-ink-faint uppercase">
+          Recent activity
+        </p>
         {recentOps.length === 0 ? (
-          <p className="text-xs leading-relaxed text-ink/45">
+          <p className="text-xs leading-relaxed text-ink-muted">
             No memory has moved yet.
           </p>
         ) : (
@@ -415,12 +555,12 @@ export function MemoryPanel({
             {recentOps.map((op, i) => (
               <li
                 key={`${op.createdAt}-${i}`}
-                className="flex items-baseline justify-between gap-3 text-xs text-ink/65"
+                className="flex items-baseline justify-between gap-3 text-xs text-ink-muted"
               >
                 <span className="truncate">
                   <Emphasized text={op.reason} />
                 </span>
-                <span className="shrink-0 font-[family-name:var(--font-mono)] text-[10px] text-ink/35">
+                <span className="shrink-0 font-mono text-[10px] text-ink-faint">
                   {formatRelativeTime(op.createdAt)}
                 </span>
               </li>

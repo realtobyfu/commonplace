@@ -37,7 +37,7 @@ function Emphasized({ text }: { text: string }) {
     <>
       {parts.map((part, i) =>
         i % 2 === 1 ? (
-          <em key={i} className="font-[family-name:var(--font-corpus)]">
+          <em key={i} className="font-corpus">
             {part}
           </em>
         ) : (
@@ -60,7 +60,7 @@ function Row({ entry, index }: { entry: TimelineEntry; index: number }) {
           <Emphasized text={entry.message} />
         </p>
         <div className="mt-1 flex items-center gap-3">
-          <span className="font-[family-name:var(--font-mono)] text-[10px] text-ink/35">
+          <span className="font-mono text-[10px] text-ink/35">
             {formatClock(entry.at)}
           </span>
           {entry.traceId && (
@@ -68,14 +68,14 @@ function Row({ entry, index }: { entry: TimelineEntry; index: number }) {
               href={`http://localhost:16686/trace/${entry.traceId}`}
               target="_blank"
               rel="noreferrer"
-              className="font-[family-name:var(--font-mono)] text-[10px] text-verdigris hover:underline"
+              className="font-mono text-[10px] text-verdigris hover:underline"
             >
               trace ↗
             </a>
           )}
         </div>
       </div>
-      <span className="shrink-0 font-[family-name:var(--font-mono)] text-[10px] text-ink/30 uppercase">
+      <span className="shrink-0 font-mono text-[10px] text-ink/30 uppercase">
         {entry.kind}
       </span>
     </li>
@@ -124,7 +124,7 @@ export function ActivityTimeline({ workspaceId, onClose }: ActivityTimelineProps
             type="button"
             onClick={() => load()}
             aria-label="Refresh activity"
-            className="font-[family-name:var(--font-mono)] text-[10px] text-ink/40 hover:text-ink"
+            className="font-mono text-[10px] text-ink/40 hover:text-ink"
           >
             refresh
           </button>
