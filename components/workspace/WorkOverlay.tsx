@@ -125,7 +125,7 @@ export function WorkOverlay({
                     title="Open the exact passage"
                     className="group flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-paper-recessed"
                   >
-                    <span className="mt-0.5 shrink-0 font-mono text-[11px] text-verdigris">
+                    <span className="mt-0.5 shrink-0 font-mono text-[11px] text-ink-faint">
                       §{s.ordinal}
                     </span>
                     <span className="min-w-0 flex-1">

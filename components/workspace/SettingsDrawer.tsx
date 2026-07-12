@@ -84,7 +84,7 @@ export function SettingsDrawer({
             step={8_000}
             value={tokenBudget}
             onChange={(e) => setTokenBudget(Number(e.target.value))}
-            className="w-full accent-[var(--color-verdigris)]"
+            className="w-full accent-[var(--color-ink)]"
           />
         </Field>
 
@@ -106,7 +106,7 @@ export function SettingsDrawer({
             step={0.5}
             value={stalenessWeight}
             onChange={(e) => setStalenessWeight(Number(e.target.value))}
-            className="w-full accent-[var(--color-verdigris)]"
+            className="w-full accent-[var(--color-ink)]"
           />
         </Field>
 
@@ -126,7 +126,7 @@ export function SettingsDrawer({
               aria-checked={askEnabled}
               onClick={() => setAskEnabled((v) => !v)}
               className={`relative h-5 w-9 rounded-full transition-colors ${
-                askEnabled ? "bg-verdigris" : "bg-structure-strong"
+                askEnabled ? "bg-ink" : "bg-structure-strong"
               }`}
             >
               <span
@@ -143,7 +143,7 @@ export function SettingsDrawer({
                 step={2_000}
                 value={askThreshold}
                 onChange={(e) => setAskThreshold(Number(e.target.value))}
-                className="flex-1 accent-[var(--color-verdigris)]"
+                className="flex-1 accent-[var(--color-ink)]"
               />
             )}
           </div>
@@ -186,7 +186,7 @@ function Field({
     <div>
       <div className="flex items-baseline justify-between">
         <label className="text-sm text-ink">{label}</label>
-        <span className="font-mono text-[10px] text-verdigris">
+        <span className="font-mono text-[10px] text-ink-muted">
           {value}
         </span>
       </div>

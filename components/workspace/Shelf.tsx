@@ -158,7 +158,7 @@ export function Shelf({ works, workLabel, onOpenWork }: ShelfProps) {
                         <button
                           type="button"
                           onClick={() => onOpenWork(w)}
-                          className="min-w-0 flex-1 cursor-pointer truncate text-left text-ink hover:text-verdigris-deep hover:underline hover:decoration-structure-strong hover:underline-offset-2"
+                          className="min-w-0 flex-1 cursor-pointer truncate text-left text-ink hover:underline hover:decoration-structure-strong hover:underline-offset-2"
                         >
                           {w.title}
                         </button>

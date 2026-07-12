@@ -104,7 +104,7 @@ export function PassageOverlay({
               <span className="font-medium tracking-[0.08em] text-ink-muted uppercase">
                 {displayAuthor(passage.author)}
               </span>
-              <span className="rounded-full bg-verdigris-wash px-2 py-0.5 font-mono text-[10px] text-verdigris">
+              <span className="font-mono text-[10px] text-ink-faint">
                 §{passage.ordinal}
               </span>
               {passage.heading && (

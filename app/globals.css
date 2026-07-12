@@ -74,13 +74,15 @@ body {
    chips, and fields read as one family. Components add layout utilities
    on top but never restyle the core look. */
 @layer components {
-  /* Filled action — the one strong control on screen at a time. */
+  /* Filled action — the one strong control on screen at a time. Controls
+     are monochrome ink: verdigris is reserved for memory state, so a
+     green button would claim a meaning it doesn't have. */
   .btn-primary {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
     border-radius: 0.375rem;
-    background: var(--color-verdigris);
+    background: var(--color-ink);
     color: #fff;
     font-family: var(--font-ui);
     font-size: 12px;
@@ -90,7 +92,7 @@ body {
     transition: background-color 150ms ease;
   }
   .btn-primary:hover:not(:disabled) {
-    background: var(--color-verdigris-deep);
+    background: #2b3138; /* ink, lifted one step */
   }
   .btn-primary:disabled {
     background: var(--color-structure-strong);
@@ -176,8 +178,8 @@ body {
     transition: border-color 150ms ease, box-shadow 150ms ease;
   }
   .input-shell:focus-within {
-    border-color: var(--color-verdigris);
-    box-shadow: 0 0 0 3px var(--color-verdigris-wash);
+    border-color: var(--color-ink-faint);
+    box-shadow: 0 0 0 3px rgba(22, 25, 29, 0.07);
   }
 }
 

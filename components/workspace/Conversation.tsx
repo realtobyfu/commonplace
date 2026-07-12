@@ -282,13 +282,13 @@ export function Conversation({
                       key={i}
                       type="button"
                       onClick={() => canSend && onSend(p.prompt)}
-                      className="block w-full rounded-lg border border-structure-strong bg-white px-4 py-3.5 text-left shadow-[0_1px_0_0_rgba(31,35,40,0.03)] transition-all hover:border-verdigris/50 hover:shadow-sm"
+                      className="block w-full rounded-lg border border-structure-strong bg-white px-4 py-3.5 text-left shadow-[0_1px_0_0_rgba(31,35,40,0.03)] transition-all hover:border-ink-faint hover:shadow-sm"
                     >
                       <RichText
                         text={p.prompt}
                         className="font-corpus text-[15px] text-ink"
                       />
-                      <span className="mt-1.5 block font-mono text-[10px] tracking-wide text-verdigris uppercase">
+                      <span className="mt-1.5 block font-mono text-[10px] tracking-wide text-ink-faint uppercase">
                         {BEHAVIOR_LABEL[p.behavior] ?? p.behavior}
                       </span>
                     </button>
@@ -414,7 +414,7 @@ export function Conversation({
               onClick={submit}
               disabled={!canSend || !draft.trim()}
               aria-label="Send"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-verdigris text-white transition-colors hover:bg-verdigris-deep disabled:cursor-not-allowed disabled:bg-structure-strong"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-colors hover:bg-[#2b3138] disabled:cursor-not-allowed disabled:bg-structure-strong"
             >
               <svg
                 width="16"

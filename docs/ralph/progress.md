@@ -398,3 +398,19 @@ unqualified, so `m.workspace_id = "id"` self-compared inside `messages`
 and every workspace showed zero conversation. Hand-qualified correlation
 fixed it. Typecheck/lint green, 49 tests green, all surfaces verified in
 the browser at 1280px.
+
+## Color simplification — controls go monochrome (2026-07-11)
+
+Tobias asked for a simpler scheme ("green button → black buttons"). This
+actually tightened the spec's own rule: §13.5 reserves verdigris for
+memory state, so controls wearing it were claiming a meaning they didn't
+have. Every control is now monochrome ink — btn-primary, the send
+button, settings sliders/toggle, composer focus ring, starter-prompt
+hover — and decorative verdigris (RichText list markers, blockquote
+rule, §-ordinals in the overlays, trace links, hover tints) dropped to
+ink tones. Verdigris survives only where it means "in memory": provenance
+chips, the budget meter, card flash/badges/drag wash, shelf
+active-reading dots, ingest reading status, and the home page's
+in-memory counts. Verified live: chips still #2e6b5e, send button #16191d
+enabled / structure-strong disabled, drawer fully monochrome. 49 tests,
+typecheck, lint green.

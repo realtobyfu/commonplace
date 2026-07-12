@@ -233,7 +233,7 @@ function Card({
     <button
       type="button"
       onClick={() => onOp("hydrate", card.itemType, card.id)}
-      className="btn-ghost hover:text-verdigris"
+      className="btn-ghost"
     >
       <Icon>
         {/* chevrons-out — the card re-expands into the working set */}

@@ -31,7 +31,7 @@ function WorkspaceRow({ ws }: { ws: HomePack["workspaces"][number] }) {
         <span
           className={`min-w-0 shrink truncate font-corpus text-[16px] ${
             ws.firstQuestion
-              ? "text-ink group-hover:text-verdigris-deep"
+              ? "text-ink underline-offset-2 group-hover:underline group-hover:decoration-structure-strong"
               : "text-ink-faint italic"
           }`}
         >

@@ -68,7 +68,7 @@ function Row({ entry, index }: { entry: TimelineEntry; index: number }) {
               href={`http://localhost:16686/trace/${entry.traceId}`}
               target="_blank"
               rel="noreferrer"
-              className="font-mono text-[10px] text-verdigris hover:underline"
+              className="font-mono text-[10px] text-ink-faint underline decoration-structure-strong underline-offset-2 hover:text-ink"
             >
               trace ↗
             </a>

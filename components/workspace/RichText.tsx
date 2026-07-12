@@ -237,7 +237,7 @@ export function RichText({ text, renderCitation, className }: RichTextProps) {
             return (
               <blockquote
                 key={i}
-                className="my-3 border-l-2 border-verdigris/40 pl-4 text-ink-muted italic"
+                className="my-3 border-l-2 border-structure-strong pl-4 text-ink-muted italic"
               >
                 <InlineNodes nodes={parseInline(b.text)} renderCitation={renderCitation} keyPrefix={`q${i}`} />
               </blockquote>
@@ -247,7 +247,7 @@ export function RichText({ text, renderCitation, className }: RichTextProps) {
               <ol
                 key={i}
                 start={b.start}
-                className="my-3 list-decimal space-y-2 pl-6 marker:font-mono marker:text-[0.8em] marker:text-verdigris"
+                className="my-3 list-decimal space-y-2 pl-6 marker:font-mono marker:text-[0.8em] marker:text-ink-faint"
               >
                 {b.items.map((item, j) => (
                   <li key={j}>
@@ -260,7 +260,7 @@ export function RichText({ text, renderCitation, className }: RichTextProps) {
             return (
               <ul
                 key={i}
-                className="my-3 list-disc space-y-2 pl-6 marker:text-verdigris/70"
+                className="my-3 list-disc space-y-2 pl-6 marker:text-ink-faint"
               >
                 {b.items.map((item, j) => (
                   <li key={j}>
