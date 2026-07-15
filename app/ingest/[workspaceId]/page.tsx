@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { use, useEffect, useRef, useState } from "react";
+import { HomeMark } from "@/components/BrandMark";
 
 /**
  * The ingest screen (§9.3, H2 working position): works checklist with live
@@ -98,6 +99,9 @@ export default function IngestPage({
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-10 px-8 py-16">
+      <div className="-mx-2 -mt-3">
+        <HomeMark />
+      </div>
       <header>
         <h1 className="font-corpus text-3xl">
           {done ? "The shelf is ready." : "Reading the corpus…"}

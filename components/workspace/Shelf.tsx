@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import { HomeMark } from "@/components/BrandMark";
 import type { ShelfWork } from "@/lib/workspace/state";
 
 /**
@@ -82,7 +82,8 @@ export function Shelf({ works, workLabel, onOpenWork }: ShelfProps) {
 
   if (collapsed) {
     return (
-      <aside className="flex w-10 shrink-0 flex-col items-center border-r border-structure-strong bg-paper-recessed py-3">
+      <aside className="flex w-10 shrink-0 flex-col items-center gap-1 border-r border-structure-strong bg-paper-recessed py-3">
+        <HomeMark collapsed />
         <button
           type="button"
           onClick={() => setCollapsed(false)}
@@ -97,12 +98,7 @@ export function Shelf({ works, workLabel, onOpenWork }: ShelfProps) {
 
   return (
     <aside className="flex w-[260px] shrink-0 flex-col border-r border-structure-strong bg-paper-recessed">
-      <Link
-        href="/"
-        className="px-5 pt-4 font-mono text-[10px] font-medium tracking-[0.14em] text-ink-faint uppercase transition-colors hover:text-ink"
-      >
-        Commonplace
-      </Link>
+      <HomeMark />
       <div className="flex items-center justify-between px-5 pt-3 pb-3">
         <h2 className="text-xs font-semibold tracking-[0.08em] text-ink-muted uppercase">
           Shelf
