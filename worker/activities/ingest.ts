@@ -413,13 +413,20 @@ export async function synthesizeConceptCards(input: {
       workspaceId: input.workspaceId,
     });
 
+    const body = result.text.trim();
+    // Embed the card in the same space as passages so the router can
+    // cosine-shortlist it and eviction can score its relevance. Deferred
+    // (null) when Ollama is down — scripts/embed-cards.ts backfills later,
+    // exactly like passage embeddings.
+    const cardVector = (await embed([`${title}\n\n${body}`]))?.[0] ?? null;
     const inserted = await db
       .insert(schema.conceptCards)
       .values({
         packId: input.packId,
         title,
-        body: result.text.trim(),
+        body,
         authorScope: [...new Set(matches.map((m) => m.author))],
+        embedding: cardVector,
       })
       .returning({ id: schema.conceptCards.id });
     const card = inserted[0];

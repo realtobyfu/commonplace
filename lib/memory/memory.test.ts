@@ -123,6 +123,31 @@ describe("plan — eviction ordering", () => {
     expect(importanceLed.ops.find((o) => o.op === "evict")?.itemId).toBe("trivial-fresh");
   });
 
+  it("relevance weighting spares a stale but on-topic item (Generative-Agents score)", () => {
+    // A slightly-stale card that's highly relevant to this question vs a
+    // fresher one that's off-topic; the budget fits only one.
+    const current = () => [
+      item({ itemId: "stale-relevant", title: "On topic", lastTouchedAtTurn: 1, relevance: 0.9 }),
+      item({ itemId: "fresh-irrelevant", title: "Off topic", lastTouchedAtTurn: 3, relevance: 0 }),
+    ];
+    const args = {
+      required: [required({ itemId: "third" })],
+      budgetTokens: 2100,
+      currentTurn: 4,
+      stalenessWeight: 1,
+    };
+
+    // relevanceWeight 0: relevance ignored — the stalest item compresses.
+    const ignored = plan({ currentSet: current(), ...args, relevanceWeight: 0 });
+    expect(ignored.ops.find((o) => o.op === "evict")?.itemId).toBe("stale-relevant");
+
+    // relevanceWeight 3: on-topic-ness outweighs the 2-turn staleness gap, so
+    // the fresh-but-irrelevant item is compressed instead — the stale, on-topic
+    // card survives.
+    const relevanceLed = plan({ currentSet: current(), ...args, relevanceWeight: 3 });
+    expect(relevanceLed.ops.find((o) => o.op === "evict")?.itemId).toBe("fresh-irrelevant");
+  });
+
   it("compresses rather than drops — the item stays in the set", () => {
     const current = [item({ itemId: "stale", lastTouchedAtTurn: 1 })];
     const result = plan({

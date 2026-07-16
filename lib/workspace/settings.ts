@@ -16,6 +16,14 @@ export interface WorkspaceSettings {
    */
   stalenessWeight: number;
   /**
+   * H3 relevance weighting. How much an item's semantic relevance to the
+   * current question protects it from eviction: higher = a stale-but-on-topic
+   * item outlasts a fresh-but-irrelevant one; 0 = relevance ignored, eviction
+   * runs on staleness vs. importance alone (the original behaviour). 1 is the
+   * balanced default.
+   */
+  relevanceWeight: number;
+  /**
    * H5 interrupt threshold. If a single turn would hydrate more than this
    * many new tokens, the agent pauses and asks before loading. The default
    * is "never ask" (act-and-narrate) — represented as MAX_SAFE_INTEGER
@@ -29,6 +37,7 @@ export const NEVER_ASK = Number.MAX_SAFE_INTEGER;
 export const DEFAULT_SETTINGS: WorkspaceSettings = {
   tokenBudget: 80_000,
   stalenessWeight: 1,
+  relevanceWeight: 1,
   askAboveTokens: NEVER_ASK,
 };
 
@@ -47,6 +56,10 @@ export function resolveSettings(raw: unknown): WorkspaceSettings {
       typeof s.stalenessWeight === "number"
         ? clamp(s.stalenessWeight, 0, 5)
         : DEFAULT_SETTINGS.stalenessWeight,
+    relevanceWeight:
+      typeof s.relevanceWeight === "number"
+        ? clamp(s.relevanceWeight, 0, 5)
+        : DEFAULT_SETTINGS.relevanceWeight,
     askAboveTokens:
       typeof s.askAboveTokens === "number" && s.askAboveTokens > 0
         ? Math.round(s.askAboveTokens)

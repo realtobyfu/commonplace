@@ -1,0 +1,1 @@
+ALTER TABLE "concept_cards" ADD COLUMN "embedding" vector(768);

@@ -9,6 +9,7 @@ import {
   cardPassagesFor,
   loadWorkingSet,
   persistPlan,
+  relevanceForItems,
   workSummaries,
 } from "./memoryStore";
 import { parseRouterPicks, stripProvenanceMarkers } from "./provenance";
@@ -45,6 +46,12 @@ export type LoopEvent =
 
 const ROUTER_PICK_CAP = 4;
 const RETRIEVAL_TOP_K = 6;
+// Two-stage routing (retrieve-then-rerank): a cheap embedding pass shortlists
+// candidates, then the LLM picks from the shortlist. These bound the router
+// prompt regardless of how large the corpus grows — the flat "every card and
+// work" index it replaced grew linearly with the shelf.
+const CARD_SHORTLIST = 12;
+const WORK_SHORTLIST = 6;
 
 /** Timeline rows (§14): meaningful loop steps mirror into `events`. */
 async function emitTimelineEvent(
@@ -60,23 +67,95 @@ async function emitTimelineEvent(
   });
 }
 
+/**
+ * Stage 1 of routing: shortlist candidates by embedding similarity. Cards are
+ * ranked by cosine to the query; works by their single nearest passage (works
+ * carry no embedding of their own). Returns null when embeddings aren't
+ * available — the query couldn't be embedded, or nothing in the pack is
+ * embedded yet — so the caller falls back to the full index.
+ */
+async function shortlistCandidates(input: {
+  packId: string;
+  queryVec: number[] | null;
+}): Promise<{
+  cards: Array<{ id: string; title: string; authorScope: string[] }>;
+  works: Array<{ id: string; title: string; author: string }>;
+} | null> {
+  const { queryVec } = input;
+  if (!queryVec) return null;
+
+  const cards = await db
+    .select({
+      id: schema.conceptCards.id,
+      title: schema.conceptCards.title,
+      authorScope: schema.conceptCards.authorScope,
+    })
+    .from(schema.conceptCards)
+    .where(
+      and(
+        eq(schema.conceptCards.packId, input.packId),
+        isNotNull(schema.conceptCards.embedding),
+      ),
+    )
+    .orderBy(cosineDistance(schema.conceptCards.embedding, queryVec))
+    .limit(CARD_SHORTLIST);
+
+  // Rank works by their closest passage — min cosine distance across the
+  // work's embedded passages — so a work surfaces when any part of it is
+  // on-topic, not only when its average is.
+  const nearest = sql<number>`min(${cosineDistance(schema.passages.embedding, queryVec)})`;
+  const works = await db
+    .select({
+      id: schema.works.id,
+      title: schema.works.title,
+      author: schema.works.author,
+    })
+    .from(schema.works)
+    .innerJoin(schema.passages, eq(schema.passages.workId, schema.works.id))
+    .where(
+      and(
+        eq(schema.works.packId, input.packId),
+        eq(schema.works.status, "ingested"),
+        isNotNull(schema.passages.embedding),
+      ),
+    )
+    .groupBy(schema.works.id, schema.works.title, schema.works.author)
+    .orderBy(nearest)
+    .limit(WORK_SHORTLIST);
+
+  if (cards.length === 0 && works.length === 0) return null;
+  return { cards, works };
+}
+
 /** §11 step 1 — the router decides what the answer needs. */
 async function routeMessage(input: {
   packId: string;
   workspaceId: string;
   message: string;
+  queryVec: number[] | null;
 }): Promise<Array<{ type: "card" | "work"; id: string }>> {
-  const cards = await db.query.conceptCards.findMany({
-    where: eq(schema.conceptCards.packId, input.packId),
-    columns: { id: true, title: true, authorScope: true },
+  // Stage 1: embedding shortlist (scalable). Stage 2: the LLM picks from it.
+  // Falls back to the full index only when embeddings are unavailable, so an
+  // Ollama outage degrades to the old behaviour instead of routing to nothing.
+  const shortlist = await shortlistCandidates({
+    packId: input.packId,
+    queryVec: input.queryVec,
   });
-  const works = await db.query.works.findMany({
-    where: and(
-      eq(schema.works.packId, input.packId),
-      eq(schema.works.status, "ingested"),
-    ),
-    columns: { id: true, title: true, author: true },
-  });
+  const cards =
+    shortlist?.cards ??
+    (await db.query.conceptCards.findMany({
+      where: eq(schema.conceptCards.packId, input.packId),
+      columns: { id: true, title: true, authorScope: true },
+    }));
+  const works =
+    shortlist?.works ??
+    (await db.query.works.findMany({
+      where: and(
+        eq(schema.works.packId, input.packId),
+        eq(schema.works.status, "ingested"),
+      ),
+      columns: { id: true, title: true, author: true },
+    }));
 
   const index = [
     "CONCEPT CARDS:",
@@ -244,11 +323,17 @@ export async function runConversationTurn(input: {
     );
   const currentTurn = Number(priorTurns[0]?.count ?? 0) + 1;
 
+  // Embed the question once per turn and reuse the vector for both routing
+  // (the candidate shortlist) and eviction (per-item relevance). Null when
+  // Ollama is unavailable — both consumers degrade to their pre-embedding
+  // behaviour rather than failing the turn.
+  const queryVec = (await embed([message]))?.[0] ?? null;
+
   // 1. route
   emit({ type: "status", message: "Consulting the shelf…" });
   let picks: Array<{ type: "card" | "work"; id: string }> = [];
   try {
-    picks = await routeMessage({ packId: workspace.packId, workspaceId, message });
+    picks = await routeMessage({ packId: workspace.packId, workspaceId, message, queryVec });
   } catch (err) {
     // Falls back to retrieval, same as a legitimate "nothing matched" —
     // but log server-side so a real router outage is diagnosable instead
@@ -278,6 +363,16 @@ export async function runConversationTurn(input: {
   }
 
   const currentSet = await loadWorkingSet(workspaceId);
+
+  // Tag each held item with its relevance to *this* question so eviction can
+  // spare a stale-but-on-topic card. Recomputed every turn; skipped wholesale
+  // when the query couldn't be embedded (relevance then stays neutral).
+  if (queryVec) {
+    const relevance = await relevanceForItems(queryVec, currentSet);
+    for (const item of currentSet) {
+      item.relevance = relevance.get(`${item.itemType}:${item.itemId}`) ?? 0;
+    }
+  }
 
   // H5 interrupt policy. Sum the tokens this turn would newly hydrate (items
   // not already hydrated). If that swing exceeds the threshold and the user
@@ -333,6 +428,7 @@ export async function runConversationTurn(input: {
     budgetTokens: settings.tokenBudget,
     currentTurn,
     stalenessWeight: settings.stalenessWeight,
+    relevanceWeight: settings.relevanceWeight,
   });
   const ops = retrieved
     ? planned.ops.map((op) =>

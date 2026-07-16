@@ -33,21 +33,30 @@ function compressReason(
 }
 
 export const DEFAULT_STALENESS_WEIGHT = 1;
+export const DEFAULT_RELEVANCE_WEIGHT = 1;
 
 /**
- * Eviction score: higher = compress sooner. Blends staleness (turns since
- * touched, scaled by stalenessWeight) against importance (weight). At
- * stalenessWeight 1 the two are balanced; raise it and recency dominates,
- * drop it toward 0 and low-importance items go first regardless of age.
- * This is the H3 knob.
+ * Eviction score: higher = compress sooner. Blends three axes (the
+ * Generative-Agents retrieval score, inverted for eviction):
+ *   staleness × stalenessWeight  − importance  − relevance × relevanceWeight
+ * Staleness (turns since touched) pushes an item out; importance (weight) and
+ * relevance (cosine to the current query, 0..1) hold it in. At stalenessWeight
+ * 1 recency and importance balance; relevanceWeight then decides how much a
+ * stale item's on-topic-ness earns it a reprieve. relevanceWeight 0 recovers
+ * the pure staleness-vs-importance behaviour. These are the H3 knobs.
  */
 function evictionScore(
   item: WorkingMemoryItem,
   currentTurn: number,
   stalenessWeight: number,
+  relevanceWeight: number,
 ): number {
   const staleness = Math.max(0, currentTurn - item.lastTouchedAtTurn);
-  return staleness * stalenessWeight - item.weight;
+  return (
+    staleness * stalenessWeight -
+    item.weight -
+    (item.relevance ?? 0) * relevanceWeight
+  );
 }
 
 /**
@@ -62,10 +71,18 @@ function evictToFit(input: {
   currentTurn: number;
   protectedKeys: Set<string>;
   stalenessWeight: number;
+  relevanceWeight: number;
   incomingLabel?: string;
 }): { nextSet: WorkingMemoryItem[]; ops: MemoryOp[]; usedTokens: number; overBudget: boolean } {
-  const { set, budgetTokens, currentTurn, protectedKeys, stalenessWeight, incomingLabel } =
-    input;
+  const {
+    set,
+    budgetTokens,
+    currentTurn,
+    protectedKeys,
+    stalenessWeight,
+    relevanceWeight,
+    incomingLabel,
+  } = input;
   const nextSet = set.map((item) => ({ ...item }));
   const ops: MemoryOp[] = [];
 
@@ -78,8 +95,8 @@ function evictToFit(input: {
     )
     .sort(
       (a, b) =>
-        evictionScore(b, currentTurn, stalenessWeight) -
-          evictionScore(a, currentTurn, stalenessWeight) ||
+        evictionScore(b, currentTurn, stalenessWeight, relevanceWeight) -
+          evictionScore(a, currentTurn, stalenessWeight, relevanceWeight) ||
         a.itemId.localeCompare(b.itemId),
     );
 
@@ -105,6 +122,7 @@ export function plan(input: {
   budgetTokens: number;
   currentTurn: number;
   stalenessWeight?: number;
+  relevanceWeight?: number;
 }): PlanResult {
   const {
     currentSet,
@@ -112,6 +130,7 @@ export function plan(input: {
     budgetTokens,
     currentTurn,
     stalenessWeight = DEFAULT_STALENESS_WEIGHT,
+    relevanceWeight = DEFAULT_RELEVANCE_WEIGHT,
   } = input;
   const working = currentSet.map((item) => ({ ...item }));
   const byKey = new Map(working.map((item) => [itemKey(item), item]));
@@ -164,6 +183,7 @@ export function plan(input: {
     currentTurn,
     protectedKeys,
     stalenessWeight,
+    relevanceWeight,
     incomingLabel: required[0]?.title,
   });
 
@@ -229,6 +249,7 @@ export function manualHydrate(input: {
   budgetTokens: number;
   currentTurn: number;
   stalenessWeight?: number;
+  relevanceWeight?: number;
 }): { nextSet: WorkingMemoryItem[]; ops: MemoryOp[]; usedTokens: number; overBudget: boolean } {
   const {
     currentSet,
@@ -236,6 +257,7 @@ export function manualHydrate(input: {
     budgetTokens,
     currentTurn,
     stalenessWeight = DEFAULT_STALENESS_WEIGHT,
+    relevanceWeight = DEFAULT_RELEVANCE_WEIGHT,
   } = input;
   const key = itemKey(target);
   const working = currentSet.map((item) => ({ ...item }));
@@ -270,6 +292,7 @@ export function manualHydrate(input: {
     currentTurn,
     protectedKeys: new Set([key]),
     stalenessWeight,
+    relevanceWeight,
     incomingLabel: target.title,
   });
 

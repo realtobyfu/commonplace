@@ -1,8 +1,9 @@
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, cosineDistance, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { estimateTokens } from "@/lib/chunking";
 import {
   currentTokenCost,
+  itemKey,
   type ItemType,
   type MemoryOp,
   type RequiredItem,
@@ -165,6 +166,85 @@ export async function loadWorkingSet(
     });
   }
   return items;
+}
+
+/**
+ * Cosine relevance of a query vector to each working-set item, keyed by
+ * itemKey (0..1, higher = more on-topic). Cards and passages use their own
+ * embedding; a work_summary uses its single nearest passage (mirroring the
+ * router's work ranking). Items whose embedding is missing are simply absent
+ * from the map — the planner treats absent as neutral (0). One query per item
+ * type; working sets are small so this stays cheap.
+ */
+export async function relevanceForItems(
+  queryVec: number[],
+  items: Array<{ itemType: ItemType; itemId: string }>,
+): Promise<Map<string, number>> {
+  const rel = new Map<string, number>();
+  const idsOf = (t: ItemType) =>
+    items.filter((i) => i.itemType === t).map((i) => i.itemId);
+
+  const cardIds = idsOf("card");
+  if (cardIds.length > 0) {
+    const rows = await db
+      .select({
+        id: schema.conceptCards.id,
+        sim: sql<number>`1 - (${cosineDistance(schema.conceptCards.embedding, queryVec)})`,
+      })
+      .from(schema.conceptCards)
+      .where(
+        and(
+          inArray(schema.conceptCards.id, cardIds),
+          isNotNull(schema.conceptCards.embedding),
+        ),
+      );
+    for (const r of rows) {
+      rel.set(itemKey({ itemType: "card", itemId: r.id }), Math.max(0, Number(r.sim)));
+    }
+  }
+
+  const passageIds = idsOf("passage");
+  if (passageIds.length > 0) {
+    const rows = await db
+      .select({
+        id: schema.passages.id,
+        sim: sql<number>`1 - (${cosineDistance(schema.passages.embedding, queryVec)})`,
+      })
+      .from(schema.passages)
+      .where(
+        and(
+          inArray(schema.passages.id, passageIds),
+          isNotNull(schema.passages.embedding),
+        ),
+      );
+    for (const r of rows) {
+      rel.set(itemKey({ itemType: "passage", itemId: r.id }), Math.max(0, Number(r.sim)));
+    }
+  }
+
+  const workIds = idsOf("work_summary");
+  if (workIds.length > 0) {
+    const nearest = sql<number>`1 - min(${cosineDistance(schema.passages.embedding, queryVec)})`;
+    const rows = await db
+      .select({ id: schema.works.id, sim: nearest })
+      .from(schema.works)
+      .innerJoin(schema.passages, eq(schema.passages.workId, schema.works.id))
+      .where(
+        and(
+          inArray(schema.works.id, workIds),
+          isNotNull(schema.passages.embedding),
+        ),
+      )
+      .groupBy(schema.works.id);
+    for (const r of rows) {
+      rel.set(
+        itemKey({ itemType: "work_summary", itemId: r.id }),
+        Math.max(0, Number(r.sim)),
+      );
+    }
+  }
+
+  return rel;
 }
 
 /** Write the planned set + ops back: upsert rows, append the audit log. */

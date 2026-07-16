@@ -71,6 +71,12 @@ export const conceptCards = pgTable("concept_cards", {
   title: text("title").notNull(),
   body: text("body").notNull(),
   authorScope: text("author_scope").array().notNull(),
+  // Semantic index of the card itself (title + body), same 768-dim
+  // nomic-embed-text space as passages.embedding. Powers embedding-based
+  // routing (shortlist candidate cards by cosine to the query before the LLM
+  // picks) and relevance-weighted eviction. Null until embedded — every read
+  // path degrades to the pre-embedding behaviour when it's missing.
+  embedding: vector("embedding", { dimensions: 768 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

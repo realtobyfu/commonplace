@@ -29,6 +29,7 @@ export function SettingsDrawer({
 }: SettingsDrawerProps) {
   const [tokenBudget, setTokenBudget] = useState(settings.tokenBudget);
   const [stalenessWeight, setStalenessWeight] = useState(settings.stalenessWeight);
+  const [relevanceWeight, setRelevanceWeight] = useState(settings.relevanceWeight);
   const [askEnabled, setAskEnabled] = useState(settings.askAboveTokens < NEVER_ASK);
   const [askThreshold, setAskThreshold] = useState(
     settings.askAboveTokens < NEVER_ASK ? settings.askAboveTokens : DEFAULT_ASK_THRESHOLD,
@@ -40,6 +41,7 @@ export function SettingsDrawer({
     const patch: WorkspaceSettings = {
       tokenBudget,
       stalenessWeight,
+      relevanceWeight,
       askAboveTokens: askEnabled ? askThreshold : NEVER_ASK,
     };
     const res = await fetch(`/api/w/${workspaceId}/settings`, {
@@ -106,6 +108,28 @@ export function SettingsDrawer({
             step={0.5}
             value={stalenessWeight}
             onChange={(e) => setStalenessWeight(Number(e.target.value))}
+            className="w-full accent-[var(--color-ink)]"
+          />
+        </Field>
+
+        <Field
+          label="Relevance weighting"
+          hint={
+            relevanceWeight === 0
+              ? "Relevance ignored — eviction runs on recency and importance alone."
+              : relevanceWeight >= 2
+                ? "On-topic cards are strongly spared, even when stale."
+                : "A card that's on-topic for the question resists eviction."
+          }
+          value={relevanceWeight.toFixed(1)}
+        >
+          <input
+            type="range"
+            min={0}
+            max={3}
+            step={0.5}
+            value={relevanceWeight}
+            onChange={(e) => setRelevanceWeight(Number(e.target.value))}
             className="w-full accent-[var(--color-ink)]"
           />
         </Field>
