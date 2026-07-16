@@ -197,10 +197,19 @@ async function retrievalFallback(input: {
   packId: string;
   message: string;
 }): Promise<string[]> {
+  // Scope everything to the workspace's pack — the eval harness
+  // (eval/retrieval.ts) caught the unscoped version pulling the *other*
+  // pack's passages into a philosophy answer's top-K.
   const embedded = await db
     .select({ id: schema.passages.id })
     .from(schema.passages)
-    .where(isNotNull(schema.passages.embedding))
+    .innerJoin(schema.works, eq(schema.works.id, schema.passages.workId))
+    .where(
+      and(
+        eq(schema.works.packId, input.packId),
+        isNotNull(schema.passages.embedding),
+      ),
+    )
     .limit(1);
 
   if (embedded.length > 0) {
@@ -213,7 +222,13 @@ async function retrievalFallback(input: {
           schema.passages,
           eq(schema.passages.id, schema.summaries.passageId),
         )
-        .where(isNotNull(schema.passages.embedding))
+        .innerJoin(schema.works, eq(schema.works.id, schema.passages.workId))
+        .where(
+          and(
+            eq(schema.works.packId, input.packId),
+            isNotNull(schema.passages.embedding),
+          ),
+        )
         .orderBy(cosineDistance(schema.passages.embedding, queryVec))
         .limit(RETRIEVAL_TOP_K);
       return rows.map((r) => r.passageId);
