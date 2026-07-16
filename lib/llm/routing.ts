@@ -10,7 +10,10 @@ export type JobKind =
   | "starter_prompts"
   | "router"
   | "synthesis"
-  | "embed";
+  | "embed"
+  // Offline evaluation (eval/faithfulness.ts) — an LLM judge, not a
+  // request-path job. Metered like the rest so eval spend shows up in `costs`.
+  | "eval_faithfulness";
 
 export type Provider = "groq" | "ollama";
 
@@ -26,6 +29,9 @@ export const routing: Record<JobKind, Route> = {
   starter_prompts: { provider: "groq", model: "openai/gpt-oss-120b" },
   synthesis: { provider: "groq", model: "openai/gpt-oss-120b" },
   embed: { provider: "ollama", model: "nomic-embed-text" },
+  // Judging faithfulness needs stronger reasoning than the cheap models —
+  // the 120b that writes answers also grades them.
+  eval_faithfulness: { provider: "groq", model: "openai/gpt-oss-120b" },
 };
 
 /** $ per MTok — docs/ralph/groq-research.md (retrieved 2026-07-02). */

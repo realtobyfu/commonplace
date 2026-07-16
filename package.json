@@ -15,7 +15,8 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "fetch-corpus": "tsx scripts/fetch-corpus.ts",
     "chunks": "tsx scripts/chunk-preview.ts",
-    "eval-ingestion": "tsx scripts/eval-ingestion.ts"
+    "eval-ingestion": "tsx scripts/eval-ingestion.ts",
+    "eval-faithfulness": "tsx eval/faithfulness.ts"
   },
   "engines": {
     "node": ">=20"
