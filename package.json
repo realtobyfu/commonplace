@@ -16,7 +16,8 @@
     "fetch-corpus": "tsx scripts/fetch-corpus.ts",
     "chunks": "tsx scripts/chunk-preview.ts",
     "eval-ingestion": "tsx scripts/eval-ingestion.ts",
-    "eval-faithfulness": "tsx eval/faithfulness.ts"
+    "eval-faithfulness": "tsx eval/faithfulness.ts",
+    "eval-retrieval": "tsx eval/retrieval.ts"
   },
   "engines": {
     "node": ">=20"
