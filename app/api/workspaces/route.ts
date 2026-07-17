@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { Client, Connection } from "@temporalio/client";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { getPack } from "@/domain-packs";
 import { db, schema } from "@/lib/db";
 
@@ -18,6 +18,43 @@ export async function POST(request: Request) {
     pack = getPack(packId);
   } catch {
     return NextResponse.json({ error: `Unknown pack: ${packId}` }, { status: 400 });
+  }
+
+  // A read already in flight (works in a non-terminal status) means the one
+  // thing to do is rejoin it — starting a second ingest workflow over the
+  // same works would double the spend. Hand back the workspace running it
+  // (the newest one without a pack_ready event, same rule as the worker's
+  // boot-resume note) so the client lands on its ingest screen.
+  const inFlight = await db.query.works.findFirst({
+    where: and(
+      eq(schema.works.packId, packId),
+      inArray(schema.works.status, [
+        "pending",
+        "chunking",
+        "summarizing",
+        "embedding",
+      ]),
+    ),
+  });
+  if (inFlight) {
+    const newest = await db.query.workspaces.findFirst({
+      where: eq(schema.workspaces.packId, packId),
+      orderBy: desc(schema.workspaces.createdAt),
+    });
+    if (newest) {
+      const finished = await db.query.events.findFirst({
+        where: and(
+          eq(schema.events.workspaceId, newest.id),
+          eq(schema.events.kind, "pack_ready"),
+        ),
+      });
+      if (!finished) {
+        return NextResponse.json({
+          workspace: newest,
+          ingestJobId: `ingest-${packId}-${newest.id}`,
+        });
+      }
+    }
   }
 
   const ingested = await db.query.works.findFirst({

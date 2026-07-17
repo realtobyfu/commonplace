@@ -20,12 +20,13 @@ function formatDate(iso: string): string {
   });
 }
 
-/** A contents entry: question, dotted leader, marginalia. */
+/** A contents entry: question, dotted leader, marginalia. A workspace whose
+ * ingest is still running routes to its reading screen, not the workspace. */
 function WorkspaceRow({ ws }: { ws: HomePack["workspaces"][number] }) {
   return (
     <li>
       <Link
-        href={`/w/${ws.id}`}
+        href={ws.reading ? `/ingest/${ws.id}` : `/w/${ws.id}`}
         className="group flex items-baseline gap-1 py-2.5"
       >
         <span
@@ -35,13 +36,17 @@ function WorkspaceRow({ ws }: { ws: HomePack["workspaces"][number] }) {
               : "text-ink-faint italic"
           }`}
         >
-          {ws.firstQuestion ?? "Nothing asked yet — open it and ask"}
+          {ws.firstQuestion ??
+            (ws.reading
+              ? "Being read now — watch the shelf fill"
+              : "Nothing asked yet — open it and ask")}
         </span>
         <span
           aria-hidden="true"
           className="mx-2 min-w-8 flex-1 self-center border-b border-dotted border-structure-strong"
         />
         <span className="flex shrink-0 items-baseline gap-3 font-mono text-[11px] text-ink-faint">
+          {ws.reading && <span className="text-verdigris">reading…</span>}
           {ws.messageCount > 0 && <span>{ws.messageCount} messages</span>}
           {ws.memoryCount > 0 && (
             <span className="text-verdigris">{ws.memoryCount} in memory</span>
@@ -55,6 +60,7 @@ function WorkspaceRow({ ws }: { ws: HomePack["workspaces"][number] }) {
 
 function PackSection({ pack }: { pack: HomePack }) {
   const ingested = pack.ingestedWorks > 0;
+  const reading = pack.readingWorkspaceId !== null;
   return (
     <section aria-label={pack.name}>
       <div className="flex items-baseline justify-between gap-6 border-b-2 border-ink/80 pb-2.5">
@@ -64,7 +70,12 @@ function PackSection({ pack }: { pack: HomePack }) {
         {/* Collation line — the shelf described the way a bibliography
             would describe a volume. */}
         <p className="hidden font-mono text-[11px] text-ink-muted sm:block">
-          {ingested ? (
+          {reading ? (
+            <>
+              reading — {pack.ingestedWorks} of {pack.totalWorks}{" "}
+              {pack.workLabel.toLowerCase()}s in
+            </>
+          ) : ingested ? (
             <>
               {pack.ingestedWorks} {pack.workLabel.toLowerCase()}s ·{" "}
               {pack.passages.toLocaleString()} passages
@@ -81,7 +92,18 @@ function PackSection({ pack }: { pack: HomePack }) {
           {pack.promiseLine}
         </p>
         <span className="shrink-0 whitespace-nowrap">
-          <NewWorkspaceButton packId={pack.id} ingested={ingested} />
+          {/* Mid-read there is no second read to start — the one action is
+              rejoining the ingest screen already in flight. */}
+          {pack.readingWorkspaceId ? (
+            <Link
+              href={`/ingest/${pack.readingWorkspaceId}`}
+              className="btn-secondary"
+            >
+              Reading the corpus…
+            </Link>
+          ) : (
+            <NewWorkspaceButton packId={pack.id} ingested={ingested} />
+          )}
         </span>
       </div>
 
