@@ -52,6 +52,15 @@ export const philosophyPack: DomainPack = {
       "Passage:",
       "{{passage}}",
     ].join("\n"),
+    summarizeWorkOrientation: [
+      "Write one factual 40-60 token orientation abstract of {{work}} by {{author}}",
+      "from the section summaries below. Name its central subject, main argument,",
+      "and major themes. Do not use quotations, citations, scaffolding, or claims",
+      "beyond these summaries. This is orientation only, not primary evidence.",
+      "",
+      "Section summaries:",
+      "{{summaries}}",
+    ].join("\n"),
     synthesizeCard: [
       "You are compiling a commonplace book of the philosophy canon.",
       'Write a concept card titled "{{concept}}" from the passage summaries below.',
@@ -95,5 +104,9 @@ export const philosophyPack: DomainPack = {
     "aesthetic contemplation",
     "master and slave morality",
     "the thing-in-itself",
+    "the general will",
+    "duty and the good will",
+    "desire and suffering",
+    "immortality of the soul",
   ],
 };

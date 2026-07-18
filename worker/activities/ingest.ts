@@ -2,11 +2,23 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { Context } from "@temporalio/activity";
 import { trace } from "@opentelemetry/api";
-import { and, asc, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  cosineDistance,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  isNull,
+  sql,
+} from "drizzle-orm";
 import { getPack } from "@/domain-packs";
 import { chunkWork } from "@/lib/chunking";
 import { db, schema } from "@/lib/db";
 import { chat, embed, fillTemplate } from "@/lib/llm";
+import { capOrientationSummary } from "@/lib/workspace/orientation";
 
 /**
  * Ingestion activities (§9). All idempotent: chunking upserts on
@@ -267,6 +279,65 @@ export async function summarizeBatch(input: {
   };
 }
 
+const WORK_ORIENTATION_SUMMARY_COUNT = 16;
+const WORK_ORIENTATION_SUMMARY_CHARS = 300;
+
+/**
+ * Create one compact orientation note for a work after its passage summaries
+ * are complete. It is deliberately separate from passage evidence: compressed
+ * work summaries can retain this note cheaply, while hydrated summaries still
+ * provide the source-linked detail used for answers and citations.
+ */
+export async function summarizeWorkOrientation(input: {
+  workId: string;
+  workspaceId: string;
+  packId: string;
+}): Promise<{ created: boolean }> {
+  const work = await db.query.works.findFirst({
+    where: eq(schema.works.id, input.workId),
+  });
+  if (!work) throw new Error(`Unknown work ${input.workId}`);
+  if (work.orientationSummary) return { created: false };
+
+  const rows = await db
+    .select({ text: schema.summaries.text, ordinal: schema.passages.ordinal })
+    .from(schema.summaries)
+    .innerJoin(schema.passages, eq(schema.passages.id, schema.summaries.passageId))
+    .where(eq(schema.passages.workId, input.workId))
+    .orderBy(asc(schema.passages.ordinal));
+  if (rows.length === 0) return { created: false };
+
+  // Sample across the full work rather than taking only its opening sections.
+  const indexes = new Set<number>();
+  const count = Math.min(WORK_ORIENTATION_SUMMARY_COUNT, rows.length);
+  for (let i = 0; i < count; i++) {
+    indexes.add(Math.floor((i * (rows.length - 1)) / Math.max(1, count - 1)));
+  }
+  const summaries = [...indexes]
+    .map((index) => rows[index])
+    .filter((row): row is NonNullable<typeof row> => row !== undefined)
+    .map((row) => `- §${row.ordinal}: ${row.text.slice(0, WORK_ORIENTATION_SUMMARY_CHARS)}`)
+    .join("\n");
+
+  const pack = getPack(input.packId);
+  const result = await chat("summarize", {
+    prompt: fillTemplate(pack.prompts.summarizeWorkOrientation, {
+      summaries,
+      author: work.author,
+      work: work.title,
+    }),
+    maxTokens: 90,
+    workspaceId: input.workspaceId,
+  });
+  const orientationSummary = capOrientationSummary(result.text);
+  if (!orientationSummary) return { created: false };
+  await db
+    .update(schema.works)
+    .set({ orientationSummary })
+    .where(and(eq(schema.works.id, input.workId), isNull(schema.works.orientationSummary)));
+  return { created: true };
+}
+
 /**
  * Embed all passages of a work that lack embeddings. Skips gracefully when
  * Ollama isn't running — re-running the workflow backfills later.
@@ -369,7 +440,14 @@ export async function synthesizeConceptCards(input: {
   );
 
   for (const seed of seeds) {
-    Context.current().heartbeat(seed);
+    // This activity is also reused by the explicit missing-card backfill CLI.
+    // Temporal heartbeats are available in the worker and harmlessly absent
+    // in that bounded one-off process.
+    try {
+      Context.current().heartbeat(seed);
+    } catch {
+      // No active Temporal activity context.
+    }
     const title = seed;
     const existing = await db.query.conceptCards.findFirst({
       where: and(
@@ -379,26 +457,45 @@ export async function synthesizeConceptCards(input: {
     });
     if (existing) continue; // idempotent re-run
 
-    const matches = await db
-      .select({
-        passageId: schema.summaries.passageId,
-        summary: schema.summaries.text,
-        author: schema.works.author,
-        work: schema.works.title,
-      })
-      .from(schema.summaries)
-      .innerJoin(
-        schema.passages,
-        eq(schema.passages.id, schema.summaries.passageId),
-      )
-      .innerJoin(schema.works, eq(schema.works.id, schema.passages.workId))
-      .where(
-        and(
-          eq(schema.works.packId, input.packId),
-          ilike(schema.summaries.text, `%${seed}%`),
-        ),
-      )
-      .limit(40);
+    const seedVector = (await embed([seed]))?.[0] ?? null;
+    const matches = seedVector
+      ? await db
+          .select({
+            passageId: schema.summaries.passageId,
+            summary: schema.summaries.text,
+            author: schema.works.author,
+            work: schema.works.title,
+            weight: sql<number>`1 - (${cosineDistance(schema.passages.embedding, seedVector)})`,
+          })
+          .from(schema.summaries)
+          .innerJoin(schema.passages, eq(schema.passages.id, schema.summaries.passageId))
+          .innerJoin(schema.works, eq(schema.works.id, schema.passages.workId))
+          .where(
+            and(
+              eq(schema.works.packId, input.packId),
+              isNotNull(schema.passages.embedding),
+            ),
+          )
+          .orderBy(cosineDistance(schema.passages.embedding, seedVector))
+          .limit(24)
+      : await db
+          .select({
+            passageId: schema.summaries.passageId,
+            summary: schema.summaries.text,
+            author: schema.works.author,
+            work: schema.works.title,
+            weight: sql<number>`1`,
+          })
+          .from(schema.summaries)
+          .innerJoin(schema.passages, eq(schema.passages.id, schema.summaries.passageId))
+          .innerJoin(schema.works, eq(schema.works.id, schema.passages.workId))
+          .where(
+            and(
+              eq(schema.works.packId, input.packId),
+              ilike(schema.summaries.text, `%${seed}%`),
+            ),
+          )
+          .limit(40);
     if (matches.length < 8) continue; // not enough material for a card
 
     const summariesBlock = matches
@@ -434,7 +531,11 @@ export async function synthesizeConceptCards(input: {
     for (const m of matches) {
       await db
         .insert(schema.cardPassages)
-        .values({ cardId: card.id, passageId: m.passageId, weight: 1 })
+        .values({
+          cardId: card.id,
+          passageId: m.passageId,
+          weight: Math.max(0, Number(m.weight)),
+        })
         .onConflictDoNothing();
     }
     cards++;

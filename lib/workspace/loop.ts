@@ -7,12 +7,14 @@ import { orderForContext, plan, type RequiredItem } from "@/lib/memory";
 import {
   buildRequiredItem,
   cardPassagesFor,
+  contextPassageIdsForItems,
   loadWorkingSet,
   persistPlan,
   relevanceForItems,
+  renderWorkSummary,
   workSummaries,
 } from "./memoryStore";
-import { parseRouterPicks, stripProvenanceMarkers } from "./provenance";
+import { citationsInContext, parseRouterPicks, stripProvenanceMarkers } from "./provenance";
 import { interruptsEnabled, resolveSettings } from "./settings";
 
 /**
@@ -301,24 +303,42 @@ async function renderItem(item: {
     return `[p:${p.id}] (${p.author}, ${p.workTitle} §${p.ordinal})\n${p.text}`;
   }
   // work_summary
+  const work = await db.query.works.findFirst({
+    where: eq(schema.works.id, item.itemId),
+  });
+  if (!work) return "";
   const summaries = await workSummaries(item.itemId);
-  const lines = summaries.map((s) => `[p:${s.passageId}] §${s.ordinal}: ${s.text}`);
-  return [`## ${item.title}`, ...lines].join("\n");
+  return renderWorkSummary({
+    title: work.title,
+    orientationSummary: work.orientationSummary,
+    state: item.state,
+    summaries,
+  });
 }
 
 export async function runConversationTurn(input: {
   workspaceId: string;
   message: string;
-  emit: (event: LoopEvent) => void;
+  emit: (event: LoopEvent) => void | Promise<void>;
+  /** Durable turn bookkeeping is owned by the API adapter, not the planner. */
+  onUserMessage?: (messageId: string) => void | Promise<void>;
+  onAssistantMessage?: (messageId: string) => void | Promise<void>;
   /** H5: set on the follow-up request after the user approves a large load. */
   approveLargeLoads?: boolean;
 }): Promise<void> {
-  const { workspaceId, message, emit, approveLargeLoads = false } = input;
+  const {
+    workspaceId,
+    message,
+    emit,
+    approveLargeLoads = false,
+    onUserMessage,
+    onAssistantMessage,
+  } = input;
   const workspace = await db.query.workspaces.findFirst({
     where: eq(schema.workspaces.id, workspaceId),
   });
   if (!workspace) {
-    emit({ type: "error", message: "Unknown workspace." });
+    await emit({ type: "error", message: "Unknown workspace." });
     return;
   }
   const pack = getPack(workspace.packId);
@@ -345,7 +365,7 @@ export async function runConversationTurn(input: {
   const queryVec = (await embed([message]))?.[0] ?? null;
 
   // 1. route
-  emit({ type: "status", message: "Consulting the shelf…" });
+  await emit({ type: "status", message: "Consulting the shelf…" });
   let picks: Array<{ type: "card" | "work"; id: string }> = [];
   try {
     picks = await routeMessage({ packId: workspace.packId, workspaceId, message, queryVec });
@@ -403,7 +423,7 @@ export async function runConversationTurn(input: {
     );
     const incomingTokens = incoming.reduce((sum, r) => sum + r.hydratedTokenCost, 0);
     if (incomingTokens > settings.askAboveTokens && incoming[0]) {
-      emit({
+      await emit({
         type: "interrupt",
         label: incoming[0].title,
         itemCount: incoming.length,
@@ -413,11 +433,11 @@ export async function runConversationTurn(input: {
     }
   }
 
-  await db.insert(schema.messages).values({
-    workspaceId,
-    role: "user",
-    content: message,
-  });
+  const insertedUser = await db
+    .insert(schema.messages)
+    .values({ workspaceId, role: "user", content: message })
+    .returning({ id: schema.messages.id });
+  if (insertedUser[0]?.id) await onUserMessage?.(insertedUser[0].id);
 
   await emitTimelineEvent(
     workspaceId,
@@ -430,7 +450,7 @@ export async function runConversationTurn(input: {
   );
 
   if (required[0]) {
-    emit({
+    await emit({
       type: "status",
       message: `Bringing *${required[0].title}* into memory…`,
     });
@@ -454,11 +474,12 @@ export async function runConversationTurn(input: {
     : planned.ops;
   await persistPlan({ workspaceId, nextSet: planned.nextSet, ops, actor: "agent" });
   for (const op of ops) {
-    emit({ type: "memory_op", ...op });
+    await emit({ type: "memory_op", ...op });
   }
 
   // 3. synthesize (streaming)
   const ordered = orderForContext(planned.nextSet);
+  const contextPassageIds = await contextPassageIdsForItems(ordered);
   const contextBlocks: string[] = [];
   for (const item of ordered) {
     const block = await renderItem(item);
@@ -485,11 +506,11 @@ export async function runConversationTurn(input: {
     });
     for await (const delta of stream.deltas) {
       fullText += delta;
-      emit({ type: "answer_delta", text: delta });
+      await emit({ type: "answer_delta", text: delta });
     }
     await stream.result;
   } catch (err) {
-    emit({
+    await emit({
       type: "error",
       message: err instanceof Error ? err.message : "Synthesis failed.",
     });
@@ -497,15 +518,21 @@ export async function runConversationTurn(input: {
   }
 
   // 4. provenance
-  const { clean, passageIds } = stripProvenanceMarkers(fullText);
+  const { clean, passageIds: citedPassageIds } = stripProvenanceMarkers(fullText);
+  const passageIds = citationsInContext(citedPassageIds, contextPassageIds);
   const inserted = await db
     .insert(schema.messages)
     .values({ workspaceId, role: "assistant", content: clean })
     .returning({ id: schema.messages.id });
   const messageId = inserted[0]?.id;
   if (!messageId) {
-    emit({ type: "error", message: "Failed to store the answer." });
+    await emit({ type: "error", message: "Failed to store the answer." });
     return;
+  }
+  await onAssistantMessage?.(messageId);
+
+  for (const passageId of contextPassageIds) {
+    await db.insert(schema.messageContextPassages).values({ messageId, passageId });
   }
 
   let provenance: ProvenanceChip[] = [];
@@ -538,5 +565,5 @@ export async function runConversationTurn(input: {
     `Answered with ${provenance.length} citation${provenance.length === 1 ? "" : "s"}.`,
   );
 
-  emit({ type: "done", messageId, content: clean, provenance });
+  await emit({ type: "done", messageId, content: clean, provenance });
 }

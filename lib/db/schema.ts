@@ -33,6 +33,9 @@ export const works = pgTable(
     licenseNote: text("license_note").notNull(),
     sourceFile: text("source_file").notNull(),
     wordCount: integer("word_count").notNull().default(0),
+    // A compact, LLM-generated orientation note. It survives compression of
+    // a work summary, but is never a substitute for hydrated source evidence.
+    orientationSummary: text("orientation_summary"),
     status: workStatus("status").notNull().default("pending"),
   },
   (t) => [uniqueIndex("works_pack_title_idx").on(t.packId, t.author, t.title)],
@@ -159,6 +162,77 @@ export const messageProvenance = pgTable(
       .references(() => passages.id),
   },
   (t) => [primaryKey({ columns: [t.messageId, t.passageId] })],
+);
+
+/** Exact source passages rendered into an assistant message's prompt. */
+export const messageContextPassages = pgTable(
+  "message_context_passages",
+  {
+    messageId: uuid("message_id")
+      .notNull()
+      .references(() => messages.id),
+    passageId: uuid("passage_id")
+      .notNull()
+      .references(() => passages.id),
+  },
+  (t) => [primaryKey({ columns: [t.messageId, t.passageId] })],
+);
+
+/**
+ * A durable request/response envelope for one reader turn. It lets a retry
+ * reattach to the same work rather than creating a second user/assistant
+ * exchange, and is the parent of replayable SSE frames.
+ */
+export const conversationTurnStatus = pgEnum("conversation_turn_status", [
+  "pending",
+  "planning",
+  "awaiting_approval",
+  "streaming",
+  "completed",
+  "failed",
+]);
+
+export const conversationTurns = pgTable(
+  "conversation_turns",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id),
+    idempotencyKey: text("idempotency_key").notNull(),
+    requestContent: text("request_content").notNull(),
+    approveLargeLoads: boolean("approve_large_loads").notNull().default(false),
+    status: conversationTurnStatus("status").notNull().default("pending"),
+    attempt: integer("attempt").notNull().default(0),
+    userMessageId: uuid("user_message_id").references(() => messages.id),
+    assistantMessageId: uuid("assistant_message_id").references(() => messages.id),
+    nextEventSeq: integer("next_event_seq").notNull().default(1),
+    error: text("error"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    completedAt: timestamp("completed_at"),
+  },
+  (t) => [
+    uniqueIndex("conversation_turns_workspace_idempotency_idx").on(
+      t.workspaceId,
+      t.idempotencyKey,
+    ),
+  ],
+);
+
+/** Ordered, durable events emitted while a conversation turn is processed. */
+export const conversationTurnEvents = pgTable(
+  "conversation_turn_events",
+  {
+    turnId: uuid("turn_id")
+      .notNull()
+      .references(() => conversationTurns.id),
+    sequence: integer("sequence").notNull(),
+    type: text("type").notNull(),
+    payload: jsonb("payload").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.turnId, t.sequence] })],
 );
 
 export const events = pgTable("events", {

@@ -101,18 +101,26 @@ interface Score {
   hit: boolean;
   coverage: number;
   reciprocalRank: number;
+  passageHit: boolean;
+  passageRecall: number;
   foundAuthors: string[];
 }
 
-function score(item: GoldenItem, orderedAuthors: string[]): Score {
+function score(item: GoldenItem, orderedAuthors: string[], orderedPassageIds: string[]): Score {
   const expected = new Set(item.expectAuthors);
+  const expectedPassages = new Set(item.relevantPassageIds);
   const found = orderedAuthors.filter((a) => expected.has(a));
   const covered = new Set(found);
   const rankIdx = orderedAuthors.findIndex((a) => expected.has(a));
+  const foundPassages = new Set(
+    orderedPassageIds.filter((id) => expectedPassages.has(id)),
+  );
   return {
     hit: found.length > 0,
     coverage: covered.size / expected.size,
     reciprocalRank: rankIdx === -1 ? 0 : 1 / (rankIdx + 1),
+    passageHit: foundPassages.size > 0,
+    passageRecall: foundPassages.size / expectedPassages.size,
     foundAuthors: [...new Set(orderedAuthors)],
   };
 }
@@ -125,23 +133,27 @@ async function runMode(
   const orderedAuthors = ids
     .map((id) => map.get(id))
     .filter((a): a is string => a !== undefined);
-  return score(item, orderedAuthors);
+  return score(item, orderedAuthors, ids);
 }
 
 interface Agg {
   hit: number;
   coverage: number;
   mrr: number;
+  passageHit: number;
+  passageRecall: number;
   n: number;
 }
 
 function empty(): Agg {
-  return { hit: 0, coverage: 0, mrr: 0, n: 0 };
+  return { hit: 0, coverage: 0, mrr: 0, passageHit: 0, passageRecall: 0, n: 0 };
 }
 function add(a: Agg, s: Score): void {
   a.hit += s.hit ? 1 : 0;
   a.coverage += s.coverage;
   a.mrr += s.reciprocalRank;
+  a.passageHit += s.passageHit ? 1 : 0;
+  a.passageRecall += s.passageRecall;
   a.n += 1;
 }
 function pct(x: number, n: number): string {
@@ -221,6 +233,12 @@ async function main() {
   );
   console.log(
     `    MRR                     ${num(kw.all.mrr, kw.all.n)}          ${num(se.all.mrr, se.all.n)}`,
+  );
+  console.log(
+    `    exact passage hit@${k}    ${pct(kw.all.passageHit, kw.all.n)}         ${pct(se.all.passageHit, se.all.n)}`,
+  );
+  console.log(
+    `    passage recall@${k}        ${num(kw.all.passageRecall, kw.all.n)}          ${num(se.all.passageRecall, se.all.n)}`,
   );
   console.log("");
   process.exit(0);

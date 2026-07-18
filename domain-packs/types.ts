@@ -35,6 +35,7 @@ export interface DomainPack {
   };
   prompts: {
     summarizePassage: string; // template — {{passage}}, {{author}}, {{work}}
+    summarizeWorkOrientation: string; // template — {{summaries}}, {{author}}, {{work}}
     synthesizeCard: string; // template — {{concept}}, {{summaries}}
     answerSystem: string; // workspace conversation system prompt
     starterPromptGen: string; // emits starter prompts at end of ingestion

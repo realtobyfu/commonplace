@@ -26,6 +26,31 @@ interface ItemContent {
   compressedTokenCost: number;
 }
 
+/** The exact compact representation used for a compressed work in a prompt. */
+export function renderCompressedWorkSummary(input: {
+  title: string;
+  orientationSummary: string | null;
+}): string {
+  return [
+    `## About ${input.title}`,
+    input.orientationSummary ??
+      "Orientation unavailable — hydrate this work to inspect its section summaries.",
+  ].join("\n");
+}
+
+export function renderWorkSummary(input: {
+  title: string;
+  orientationSummary: string | null;
+  state: string;
+  summaries: Array<{ passageId: string; ordinal: number; text: string }>;
+}): string {
+  if (input.state === "compressed") {
+    return renderCompressedWorkSummary(input);
+  }
+  const lines = input.summaries.map((s) => `[p:${s.passageId}] §${s.ordinal}: ${s.text}`);
+  return [`## About ${input.title}`, ...lines].join("\n");
+}
+
 async function cardContent(cardId: string): Promise<ItemContent | null> {
   const card = await db.query.conceptCards.findFirst({
     where: eq(schema.conceptCards.id, cardId),
@@ -107,17 +132,52 @@ export async function workSummaries(workId: string) {
     .limit(WORK_SUMMARY_CAP);
 }
 
+/**
+ * Exact passage ids that a hydrated working set contributes to synthesis.
+ * Compressed items deliberately contribute no primary evidence: their card
+ * bodies/orientation notes help the model navigate, but cannot justify a
+ * provenance chip.
+ */
+export async function contextPassageIdsForItems(
+  items: Array<Pick<WorkingMemoryItem, "itemType" | "itemId" | "state">>,
+): Promise<string[]> {
+  const ids = new Set<string>();
+  for (const item of items) {
+    if (item.state !== "hydrated") continue;
+    if (item.itemType === "card") {
+      for (const passage of await cardPassagesFor(item.itemId)) ids.add(passage.id);
+    } else if (item.itemType === "passage") {
+      ids.add(item.itemId);
+    } else {
+      for (const summary of await workSummaries(item.itemId)) ids.add(summary.passageId);
+    }
+  }
+  return [...ids];
+}
+
 async function workSummaryContent(workId: string): Promise<ItemContent | null> {
   const work = await db.query.works.findFirst({
     where: eq(schema.works.id, workId),
   });
   if (!work) return null;
   const summaries = await workSummaries(workId);
-  const tokens = summaries.reduce((sum, s) => sum + estimateTokens(s.text), 0);
+  const hydratedTokenCost = estimateTokens(
+    renderWorkSummary({
+      title: work.title,
+      orientationSummary: work.orientationSummary,
+      state: "hydrated",
+      summaries,
+    }),
+  );
   return {
     title: `About ${work.title}`,
-    hydratedTokenCost: Math.max(tokens, 1),
-    compressedTokenCost: Math.min(Math.max(tokens, 1), 60),
+    hydratedTokenCost,
+    compressedTokenCost: estimateTokens(
+      renderCompressedWorkSummary({
+        title: work.title,
+        orientationSummary: work.orientationSummary,
+      }),
+    ),
   };
 }
 
@@ -255,41 +315,43 @@ export async function persistPlan(input: {
   actor: "agent" | "user";
 }): Promise<void> {
   const { workspaceId, nextSet, ops, actor } = input;
-  for (const item of nextSet) {
-    await db
-      .insert(schema.workingMemoryItems)
-      .values({
-        workspaceId,
-        itemType: item.itemType,
-        itemId: item.itemId,
-        state: item.state,
-        pinned: item.pinned,
-        lastTouchedTurn: item.lastTouchedAtTurn,
-        tokenCost: currentTokenCost(item),
-      })
-      .onConflictDoUpdate({
-        target: [
-          schema.workingMemoryItems.workspaceId,
-          schema.workingMemoryItems.itemType,
-          schema.workingMemoryItems.itemId,
-        ],
-        set: {
+  await db.transaction(async (tx) => {
+    for (const item of nextSet) {
+      await tx
+        .insert(schema.workingMemoryItems)
+        .values({
+          workspaceId,
+          itemType: item.itemType,
+          itemId: item.itemId,
           state: item.state,
           pinned: item.pinned,
           lastTouchedTurn: item.lastTouchedAtTurn,
-          lastTouchedAt: new Date(),
           tokenCost: currentTokenCost(item),
-        },
+        })
+        .onConflictDoUpdate({
+          target: [
+            schema.workingMemoryItems.workspaceId,
+            schema.workingMemoryItems.itemType,
+            schema.workingMemoryItems.itemId,
+          ],
+          set: {
+            state: item.state,
+            pinned: item.pinned,
+            lastTouchedTurn: item.lastTouchedAtTurn,
+            lastTouchedAt: new Date(),
+            tokenCost: currentTokenCost(item),
+          },
+        });
+    }
+    for (const op of ops) {
+      await tx.insert(schema.memoryOps).values({
+        workspaceId,
+        op: op.op,
+        itemType: op.itemType,
+        itemId: op.itemId,
+        actor,
+        reason: op.reason,
       });
-  }
-  for (const op of ops) {
-    await db.insert(schema.memoryOps).values({
-      workspaceId,
-      op: op.op,
-      itemType: op.itemType,
-      itemId: op.itemId,
-      actor,
-      reason: op.reason,
-    });
-  }
+    }
+  });
 }

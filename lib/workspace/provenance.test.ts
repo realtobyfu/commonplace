@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseRouterPicks, stripProvenanceMarkers } from "./provenance";
+import { citationsInContext, parseRouterPicks, stripProvenanceMarkers } from "./provenance";
 
 const ID_A = "11111111-2222-3333-4444-555555555555";
 const ID_B = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
@@ -86,6 +86,25 @@ describe("stripProvenanceMarkers", () => {
     const { clean, passageIds } = stripProvenanceMarkers(text);
     expect(clean).toBe("justice is clarified in the city soul. And again.");
     expect(passageIds).toEqual([]);
+  });
+});
+
+describe("citationsInContext", () => {
+  it("keeps the allowed subset in the model's citation order", () => {
+    expect(citationsInContext([ID_B, ID_A], [ID_A])).toEqual([ID_A]);
+  });
+
+  it("rejects a real-looking citation when its passage was not hydrated", () => {
+    const notInContext = "99999999-8888-7777-6666-555555555555";
+    expect(citationsInContext([ID_A, notInContext], [ID_A])).toEqual([ID_A]);
+  });
+
+  it("compares identifiers case-insensitively", () => {
+    expect(citationsInContext([ID_A.toUpperCase()], [ID_A])).toEqual([ID_A.toUpperCase()]);
+  });
+
+  it("rejects all citations when the prompt had no hydrated evidence", () => {
+    expect(citationsInContext([ID_A, ID_B], [])).toEqual([]);
   });
 });
 

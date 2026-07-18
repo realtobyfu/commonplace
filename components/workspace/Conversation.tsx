@@ -35,6 +35,7 @@ export interface StarterPrompt {
 export interface PendingInterrupt {
   text: string;
   userMsgId: string;
+  idempotencyKey: string;
   label: string;
   itemCount: number;
   incomingTokens: number;
@@ -241,7 +242,27 @@ export function Conversation({
   onChipClick,
 }: ConversationProps) {
   const [draft, setDraft] = useState("");
+  // Keep the empty state compact while still letting the generated prompt set
+  // rotate between visits. The first three are also the SSR-safe fallback;
+  // the client samples the full set once after mounting.
+  const [visibleStarterPrompts, setVisibleStarterPrompts] = useState(() =>
+    starterPrompts.slice(0, 3),
+  );
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const shuffled = [...starterPrompts];
+      for (let i = shuffled.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const item = shuffled[i]!;
+        shuffled[i] = shuffled[j]!;
+        shuffled[j] = item;
+      }
+      setVisibleStarterPrompts(shuffled.slice(0, 3));
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [starterPrompts]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -259,17 +280,17 @@ export function Conversation({
     <div className="flex min-w-0 flex-1 flex-col bg-paper">
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-10 py-12">
         {messages.length === 0 ? (
-          <div className="flex h-full min-h-[420px] items-center justify-center">
-            <div className="mx-auto max-w-xl text-center">
+          <div className="flex min-h-full min-w-0 justify-center">
+            <div className="flex min-h-full min-w-0 max-w-xl flex-1 flex-col items-center pt-10 text-center sm:pt-14">
               <div className="mx-auto mb-6 h-px w-10 bg-structure-strong" />
-              <p className="font-corpus text-[2.25rem] leading-[1.25] text-ink">
+              <p className="shrink-0 font-corpus text-[2.25rem] leading-[1.25] text-ink">
                 {promiseLine}
               </p>
               <div className="mx-auto mt-6 h-px w-10 bg-structure-strong" />
 
-              <div className="mt-12 space-y-2.5 text-left">
+              <div className="mt-10 min-h-0 w-full flex-1 overflow-y-auto pb-8 text-left sm:mt-12">
                 {starterPrompts.length === 0 ? (
-                  <div className="space-y-2.5 pt-1">
+                  <div className="space-y-4 pt-1">
                     {[0, 1, 2].map((i) => (
                       <div
                         key={i}
@@ -282,12 +303,12 @@ export function Conversation({
                     </p>
                   </div>
                 ) : (
-                  starterPrompts.map((p, i) => (
+                  visibleStarterPrompts.map((p, i) => (
                     <button
                       key={i}
                       type="button"
                       onClick={() => canSend && onSend(p.prompt)}
-                      className="block w-full rounded-lg border border-structure-strong bg-white px-4 py-3.5 text-left shadow-[0_1px_0_0_rgba(31,35,40,0.03)] transition-all hover:border-ink-faint hover:shadow-sm"
+                      className="mb-4 block w-full rounded-lg border border-structure-strong bg-white px-4 py-3.5 text-left shadow-[0_1px_0_0_rgba(31,35,40,0.03)] transition-all hover:border-ink-faint hover:shadow-sm last:mb-0"
                     >
                       <RichText
                         text={p.prompt}

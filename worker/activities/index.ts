@@ -9,5 +9,6 @@ export {
   generateStarterPrompts,
   preparePack,
   summarizeBatch,
+  summarizeWorkOrientation,
   synthesizeConceptCards,
 } from "./ingest";

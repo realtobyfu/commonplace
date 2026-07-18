@@ -37,6 +37,15 @@ export const swiftEvolutionPack: DomainPack = {
       "Section:",
       "{{passage}}",
     ].join("\n"),
+    summarizeWorkOrientation: [
+      "Write one factual 40-60 token orientation abstract of the Swift proposal",
+      "{{work}} from the section summaries below. Name its design purpose, the main",
+      "decision, and the major tradeoffs. Do not use quotations, citations, scaffolding,",
+      "or claims beyond these summaries. This is orientation only, not primary evidence.",
+      "",
+      "Section summaries:",
+      "{{summaries}}",
+    ].join("\n"),
     synthesizeCard: [
       "You are compiling a design history of the Swift language.",
       'Write a concept card titled "{{concept}}" from the proposal section',

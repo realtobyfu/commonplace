@@ -5,6 +5,7 @@ import type { WorkspaceState } from "@/lib/workspace/state";
 import type { WorkspaceSettings } from "@/lib/workspace/settings";
 import { ActivityTimeline } from "./ActivityTimeline";
 import { Conversation, type ChatMessage, type PendingInterrupt } from "./Conversation";
+import { ConceptLibrary } from "./ConceptLibrary";
 import { MemoryPanel } from "./MemoryPanel";
 import { PassageOverlay, type PassageDetail } from "./PassageOverlay";
 import { SettingsDrawer } from "./SettingsDrawer";
@@ -62,6 +63,7 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
   const [busy, setBusy] = useState(false);
   const [settings, setSettings] = useState<WorkspaceSettings>(state.settings);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [pendingInterrupt, setPendingInterrupt] = useState<PendingInterrupt | null>(null);
   const [flashItemId, setFlashItemId] = useState<string | null>(null);
@@ -92,11 +94,15 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
   }, [refreshState]);
 
   const send = useCallback(
-    async (text: string, opts: { approveLargeLoads?: boolean } = {}) => {
+    async (
+      text: string,
+      opts: { approveLargeLoads?: boolean; idempotencyKey?: string } = {},
+    ) => {
       if (busy) return;
       setBusy(true);
       setPendingInterrupt(null);
       const approving = opts.approveLargeLoads === true;
+      const idempotencyKey = opts.idempotencyKey ?? crypto.randomUUID();
 
       // On the initial send, optimistically show the user's message; on an
       // approval re-send the user bubble is already on screen, so only add a
@@ -122,8 +128,15 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
       try {
         const res = await fetch(`/api/w/${state.workspace.id}/messages`, {
           method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ content: text, approveLargeLoads: approving }),
+          headers: {
+            "content-type": "application/json",
+            "idempotency-key": idempotencyKey,
+          },
+          body: JSON.stringify({
+            content: text,
+            approveLargeLoads: approving,
+            idempotencyKey,
+          }),
         });
         if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
@@ -146,6 +159,7 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
               setPendingInterrupt({
                 text,
                 userMsgId,
+                idempotencyKey,
                 label: String(frame.label ?? "a large load"),
                 itemCount: Number(frame.itemCount ?? 1),
                 incomingTokens: Number(frame.incomingTokens ?? 0),
@@ -268,7 +282,10 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
 
   const approveInterrupt = useCallback(() => {
     if (!pendingInterrupt) return;
-    void send(pendingInterrupt.text, { approveLargeLoads: true });
+    void send(pendingInterrupt.text, {
+      approveLargeLoads: true,
+      idempotencyKey: pendingInterrupt.idempotencyKey,
+    });
   }, [pendingInterrupt, send]);
 
   const cancelInterrupt = useCallback(() => {
@@ -308,8 +325,20 @@ export function WorkspaceShell({ state, workLabel }: WorkspaceShellProps) {
         onOp={memoryOp}
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenTimeline={() => setTimelineOpen(true)}
+        onOpenLibrary={() => setLibraryOpen(true)}
         flashItemId={flashItemId}
       />
+      {libraryOpen && (
+        <div className="fixed top-0 right-0 z-20 h-screen w-[420px] border-l border-structure-strong shadow-xl">
+          <ConceptLibrary
+            workspaceId={state.workspace.id}
+            workingSet={workingSet}
+            onClose={() => setLibraryOpen(false)}
+            onOp={memoryOp}
+            onOpenPassage={openChip}
+          />
+        </div>
+      )}
       {settingsOpen && (
         <SettingsDrawerHost
           workspaceId={state.workspace.id}

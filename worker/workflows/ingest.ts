@@ -37,6 +37,7 @@ export async function ingestWork(input: IngestWorkInput): Promise<void> {
     if (remaining === 0) break;
   }
 
+  await acts.summarizeWorkOrientation(input);
   const { deferred } = await acts.embedWork(input);
   await acts.finishWork({ ...input, embeddingsDeferred: deferred });
 }

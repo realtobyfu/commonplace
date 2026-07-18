@@ -17,7 +17,11 @@
     "chunks": "tsx scripts/chunk-preview.ts",
     "eval-ingestion": "tsx scripts/eval-ingestion.ts",
     "eval-faithfulness": "tsx eval/faithfulness.ts",
-    "eval-retrieval": "tsx eval/retrieval.ts"
+    "eval-retrieval": "tsx eval/retrieval.ts",
+    "eval-routing": "tsx eval/routing.ts",
+    "backfill-work-orientations": "tsx scripts/backfill-work-orientations.ts",
+    "normalize-work-orientations": "tsx scripts/normalize-work-orientations.ts",
+    "synthesize-missing-cards": "tsx scripts/synthesize-missing-cards.ts"
   },
   "engines": {
     "node": ">=20"

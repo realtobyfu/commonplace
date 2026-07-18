@@ -48,6 +48,7 @@ interface MemoryPanelProps {
   ) => void;
   onOpenSettings: () => void;
   onOpenTimeline: () => void;
+  onOpenLibrary: () => void;
   /** Set briefly when a provenance chip names a card in the working set. */
   flashItemId: string | null;
 }
@@ -409,6 +410,7 @@ export function MemoryPanel({
   onOp,
   onOpenSettings,
   onOpenTimeline,
+  onOpenLibrary,
   flashItemId,
 }: MemoryPanelProps) {
   const pct = Math.min(100, Math.round((budget.used / budget.total) * 100));
@@ -491,6 +493,19 @@ export function MemoryPanel({
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 7v5l3 2" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={onOpenLibrary}
+              aria-label="Browse concept library"
+              title="Browse concepts"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-ink-muted transition-colors hover:bg-paper hover:text-ink"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z" />
+                <path d="M4 5.5v16" />
+                <path d="M8 7h8M8 11h7" />
               </svg>
             </button>
             <button

@@ -64,6 +64,15 @@ export function stripProvenanceMarkers(text: string): StrippedProvenance {
   return { clean, passageIds };
 }
 
+/** Keep only citations to passages actually rendered as hydrated evidence. */
+export function citationsInContext(
+  citedPassageIds: string[],
+  contextPassageIds: Iterable<string>,
+): string[] {
+  const allowed = new Set([...contextPassageIds].map((id) => id.toLowerCase()));
+  return citedPassageIds.filter((id) => allowed.has(id.toLowerCase()));
+}
+
 /**
  * Router output parsing (§11 step 1). The router must return strict JSON;
  * models still wrap it in prose or fences often enough that we extract the
