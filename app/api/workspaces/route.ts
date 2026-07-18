@@ -3,6 +3,7 @@ import { Client, Connection } from "@temporalio/client";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { getPack } from "@/domain-packs";
 import { db, schema } from "@/lib/db";
+import { isReadOnlyDemo } from "@/lib/env";
 
 /**
  * POST /api/workspaces — create a workspace for a pack; kicks off the
@@ -10,6 +11,13 @@ import { db, schema } from "@/lib/db";
  * workspace and the ingest job id (empty when no ingestion was needed).
  */
 export async function POST(request: Request) {
+  if (isReadOnlyDemo()) {
+    return NextResponse.json(
+      { error: "This deployment is read-only — no ingestion worker runs behind it." },
+      { status: 403 },
+    );
+  }
+
   const body = (await request.json().catch(() => ({}))) as { packId?: string };
   const packId = body.packId ?? "philosophy";
 

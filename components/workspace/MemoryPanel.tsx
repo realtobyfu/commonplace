@@ -308,19 +308,22 @@ function Card({
           <button
             type="button"
             onClick={onToggleExpand}
-            className="flex w-full items-center gap-1.5 text-left"
+            className="flex w-full items-start gap-1.5 text-left"
             title={expanded ? "Collapse" : "Show the passages underneath"}
             aria-expanded={expanded}
           >
             {isPinned && (
-              <span className="shrink-0 text-pin-amber" aria-label="Pinned">
+              <span className="shrink-0 pt-1 text-pin-amber" aria-label="Pinned">
                 <PinGlyph filled />
               </span>
             )}
-            <span className="min-w-0 flex-1 truncate font-corpus text-[15px] text-ink">
+            {/* Wrap instead of truncate — one clipped line turned every long
+                work title into "…Will and Idea (Vo". Two lines covers the
+                longest shelf titles. */}
+            <span className="line-clamp-2 min-w-0 flex-1 font-corpus text-[15px] leading-snug text-ink">
               {card.title}
             </span>
-            {expandChevron}
+            <span className="pt-1">{expandChevron}</span>
           </button>
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             {card.passageCount > 0 && (

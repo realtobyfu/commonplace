@@ -36,8 +36,17 @@ export async function GET(
     columns: { cardId: true },
   });
 
+  // The ingestion-time summary rides along so hover previews can show a
+  // couple of sentences instead of the full passage (which stays behind
+  // the click-through overlay).
+  const summary = await db.query.summaries.findFirst({
+    where: eq(schema.summaries.passageId, passageId),
+    columns: { text: true },
+  });
+
   return NextResponse.json({
     ...passage,
+    summary: summary?.text ?? null,
     cardIds: links.map((l) => l.cardId),
   });
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { loadHome, type HomePack } from "@/lib/workspace/home";
 import { NewWorkspaceButton } from "@/components/home/NewWorkspaceButton";
+import { isReadOnlyDemo } from "@/lib/env";
 
 /**
  * The front door, set as a book's front matter: a title page, then each
@@ -58,7 +59,7 @@ function WorkspaceRow({ ws }: { ws: HomePack["workspaces"][number] }) {
   );
 }
 
-function PackSection({ pack }: { pack: HomePack }) {
+function PackSection({ pack, readOnly }: { pack: HomePack; readOnly: boolean }) {
   const ingested = pack.ingestedWorks > 0;
   const reading = pack.readingWorkspaceId !== null;
   return (
@@ -101,6 +102,12 @@ function PackSection({ pack }: { pack: HomePack }) {
             >
               Reading the corpus…
             </Link>
+          ) : readOnly ? (
+            // The hosted demo has no ingestion worker behind it (§lib/env) —
+            // starting a fresh read on this shelf isn't possible here, so the
+            // one action that needs it is simply absent rather than a button
+            // that fails.
+            null
           ) : (
             <NewWorkspaceButton packId={pack.id} ingested={ingested} />
           )}
@@ -120,6 +127,7 @@ function PackSection({ pack }: { pack: HomePack }) {
 
 export default async function Home() {
   const packs = await loadHome();
+  const readOnly = isReadOnlyDemo();
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col px-8 pt-24 pb-12">
@@ -151,7 +159,7 @@ export default async function Home() {
 
       <div className="mt-20 flex flex-col gap-16">
         {packs.map((pack) => (
-          <PackSection key={pack.id} pack={pack} />
+          <PackSection key={pack.id} pack={pack} readOnly={readOnly} />
         ))}
       </div>
 

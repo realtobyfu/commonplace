@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { stripSummaryPreamble } from "@/lib/workspace/summaryText";
 import { RichText } from "./RichText";
 
 /**
@@ -83,6 +84,8 @@ interface PassagePreview {
   ordinal: number;
   heading: string | null;
   text: string;
+  /** Ingestion-time 1–3 sentence summary; null for unsummarized passages. */
+  summary: string | null;
   workTitle: string;
   author: string;
   cardIds: string[];
@@ -184,12 +187,14 @@ function CitationChip({
                 : "fetching passage…"}
           </span>
           {preview && (
+            // The summary, not the passage: a hover check should read in a
+            // glance. The full text stays behind the click-through overlay.
             <span className="mt-1.5 line-clamp-6 block font-corpus text-[13px] leading-relaxed text-ink">
-              {preview.text}
+              {preview.summary ? stripSummaryPreamble(preview.summary) : preview.text}
             </span>
           )}
           <span className="mt-2 block font-ui text-[10px] text-ink-faint">
-            click to open
+            click to open the full passage
           </span>
         </span>
       )}

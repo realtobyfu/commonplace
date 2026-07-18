@@ -158,7 +158,18 @@ type Block =
   | { kind: "h"; depth: number; text: string }
   | { kind: "quote"; text: string }
   | { kind: "ol"; start: number; items: string[] }
-  | { kind: "ul"; items: string[] };
+  | { kind: "ul"; items: string[] }
+  | { kind: "table"; rows: string[][]; hasHeader: boolean };
+
+/** A `| … | … |` table row's cells. */
+function splitTableRow(inner: string): string[] {
+  return inner.split("|").map((c) => c.trim());
+}
+
+/** The `|---|:---:|` alignment row between a table's header and body. */
+function isSeparatorCells(cells: string[]): boolean {
+  return cells.length > 0 && cells.every((c) => /^:?-+:?$/.test(c));
+}
 
 function parseBlocks(text: string): Block[] {
   const lines = text.split("\n");
@@ -172,6 +183,12 @@ function parseBlocks(text: string): Block[] {
   };
   for (const line of lines) {
     const heading = line.match(/^(#{1,4})\s+(.*)$/);
+    // Models often mark section headings as a lone fully-bold line instead
+    // of ###. Without this, a bold heading directly after a list is
+    // swallowed by the wrapped-line continuation below and glued onto the
+    // last item mid-sentence.
+    const boldHeading = line.match(/^\s*\*\*([^*]+)\*\*:?\s*$/);
+    const tableRow = line.match(/^\s*\|(.+)\|\s*$/);
     const olItem = line.match(/^\s*(\d+)[.)]\s+(.*)$/);
     const ulItem = line.match(/^\s*[-•*]\s+(.*)$/);
     const quote = line.match(/^>\s?(.*)$/);
@@ -184,6 +201,23 @@ function parseBlocks(text: string): Block[] {
         depth: (heading[1] ?? "#").length,
         text: heading[2] ?? "",
       });
+    } else if (boldHeading) {
+      flush();
+      blocks.push({ kind: "h", depth: 3, text: boldHeading[1] ?? "" });
+    } else if (tableRow) {
+      flush();
+      const cells = splitTableRow(tableRow[1] ?? "");
+      const isSep = isSeparatorCells(cells);
+      const last = blocks[blocks.length - 1];
+      if (last?.kind === "table") {
+        if (isSep) {
+          if (last.rows.length === 1) last.hasHeader = true;
+        } else {
+          last.rows.push(cells);
+        }
+      } else if (!isSep) {
+        blocks.push({ kind: "table", rows: [cells], hasHeader: false });
+      }
     } else if (olItem) {
       flush();
       const item = olItem[2] ?? "";
@@ -269,6 +303,43 @@ export function RichText({ text, renderCitation, className }: RichTextProps) {
                 ))}
               </ul>
             );
+          case "table": {
+            const head = b.hasHeader ? b.rows[0] : undefined;
+            const body = b.hasHeader ? b.rows.slice(1) : b.rows;
+            return (
+              // Wide comparative tables scroll in place rather than
+              // stretching the message column.
+              <div key={i} className="my-4 overflow-x-auto">
+                <table className="w-full border-collapse text-[0.88em] leading-normal">
+                  {head && (
+                    <thead>
+                      <tr>
+                        {head.map((cell, j) => (
+                          <th
+                            key={j}
+                            className="border-b border-structure-strong px-3 py-1.5 text-left align-bottom font-ui text-[12px] font-semibold tracking-[0.02em] text-ink first:pl-0 last:pr-0"
+                          >
+                            <InlineNodes nodes={parseInline(cell)} renderCitation={renderCitation} keyPrefix={`t${i}h${j}`} />
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                  )}
+                  <tbody>
+                    {body.map((row, r) => (
+                      <tr key={r} className="border-b border-structure last:border-b-0">
+                        {row.map((cell, j) => (
+                          <td key={j} className="px-3 py-2 align-top first:pl-0 last:pr-0">
+                            <InlineNodes nodes={parseInline(cell)} renderCitation={renderCitation} keyPrefix={`t${i}r${r}c${j}`} />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          }
           case "p":
             return (
               <p key={i} className="my-3 whitespace-pre-wrap first:mt-0 last:mb-0">
