@@ -57,6 +57,20 @@
       "when": 1784356553952,
       "tag": "0007_grey_barracuda",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784364182100,
+      "tag": "0008_tired_nebula",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784500000000,
+      "tag": "0009_memory_revision",
+      "breakpoints": true
     }
   ]
 }

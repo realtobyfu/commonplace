@@ -1,6 +1,7 @@
 import { and, asc, cosineDistance, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { estimateTokens } from "@/lib/chunking";
+import { chooseDiverseCardMatches } from "@/lib/conceptCards";
 import {
   currentTokenCost,
   itemKey,
@@ -78,6 +79,7 @@ export async function cardPassagesFor(cardId: string) {
       author: schema.works.author,
       workTitle: schema.works.title,
       weight: schema.cardPassages.weight,
+      evidenceRole: schema.cardPassages.evidenceRole,
     })
     .from(schema.cardPassages)
     .innerJoin(
@@ -87,8 +89,22 @@ export async function cardPassagesFor(cardId: string) {
     .innerJoin(schema.works, eq(schema.works.id, schema.passages.workId))
     .where(eq(schema.cardPassages.cardId, cardId))
     .orderBy(desc(schema.cardPassages.weight), asc(schema.passages.ordinal))
-    .limit(CARD_HYDRATED_PASSAGE_CAP);
-  return rows;
+    .limit(32);
+  // Card links are ordered by strength, then diversified across works so a
+  // multi-work card does not spend its entire evidence budget on one source.
+  return chooseDiverseCardMatches(
+    rows.map((row) => ({
+      passageId: row.id,
+      summary: row.text,
+      author: row.author,
+      work: row.workTitle,
+      weight: row.weight,
+    })),
+    CARD_HYDRATED_PASSAGE_CAP,
+  ).map((selected) => {
+    const original = rows.find((row) => row.id === selected.passageId)!;
+    return original;
+  });
 }
 
 async function passageContent(passageId: string): Promise<ItemContent | null> {
@@ -310,12 +326,28 @@ export async function relevanceForItems(
 /** Write the planned set + ops back: upsert rows, append the audit log. */
 export async function persistPlan(input: {
   workspaceId: string;
+  /** Revision observed while reading the working set. */
+  expectedMemoryRevision: number;
   nextSet: WorkingMemoryItem[];
   ops: MemoryOp[];
   actor: "agent" | "user";
 }): Promise<void> {
-  const { workspaceId, nextSet, ops, actor } = input;
+  const { workspaceId, expectedMemoryRevision, nextSet, ops, actor } = input;
   await db.transaction(async (tx) => {
+    // Claim the next revision before writing any memory rows. If another turn
+    // committed after this plan was read, abort the whole transaction rather
+    // than letting stale evictions overwrite its newer working set.
+    const claimed = await tx
+      .update(schema.workspaces)
+      .set({ memoryRevision: expectedMemoryRevision + 1 })
+      .where(
+        and(
+          eq(schema.workspaces.id, workspaceId),
+          eq(schema.workspaces.memoryRevision, expectedMemoryRevision),
+        ),
+      )
+      .returning({ id: schema.workspaces.id });
+    if (!claimed[0]) throw new WorkingMemoryConflictError();
     for (const item of nextSet) {
       await tx
         .insert(schema.workingMemoryItems)
@@ -354,4 +386,11 @@ export async function persistPlan(input: {
       });
     }
   });
+}
+
+/** The caller must reload/replan rather than committing a stale working set. */
+export class WorkingMemoryConflictError extends Error {
+  constructor() {
+    super("Working memory changed while this turn was being planned. Retry the request.");
+  }
 }

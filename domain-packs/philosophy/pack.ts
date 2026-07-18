@@ -66,6 +66,8 @@ export const philosophyPack: DomainPack = {
       'Write a concept card titled "{{concept}}" from the passage summaries below.',
       "The card is 150-250 words: what the thinker(s) actually claim, where they",
       "differ, and which works carry the argument. No filler, no hedging.",
+      "Output strict JSON: {body: string, evidence: [{passageId: string, weight: number, role: string}]}. ",
+      "Use only passage IDs supplied in the summaries. Evidence roles should say why a passage matters (for example: thesis, contrast, example, consequence).",
       "",
       "Summaries:",
       "{{summaries}}",

@@ -52,6 +52,8 @@ export const swiftEvolutionPack: DomainPack = {
       "summaries below. The card is 150-250 words: what was decided, what",
       "alternatives were rejected and why, and which proposals carry the",
       "design. No filler.",
+      "Output strict JSON: {body: string, evidence: [{passageId: string, weight: number, role: string}]}. ",
+      "Use only passage IDs supplied in the summaries. Evidence roles should say why a section matters (for example: decision, alternative, rationale, tradeoff).",
       "",
       "Summaries:",
       "{{summaries}}",

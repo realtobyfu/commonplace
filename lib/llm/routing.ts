@@ -20,6 +20,8 @@ export type Provider = "groq" | "ollama";
 export interface Route {
   provider: Provider;
   model: string;
+  /** Total tokens accepted by the provider, input plus generated output. */
+  contextWindowTokens?: number;
 }
 
 export const routing: Record<JobKind, Route> = {
@@ -27,7 +29,10 @@ export const routing: Record<JobKind, Route> = {
   router: { provider: "groq", model: "openai/gpt-oss-20b" },
   concept_card: { provider: "groq", model: "openai/gpt-oss-120b" },
   starter_prompts: { provider: "groq", model: "openai/gpt-oss-120b" },
-  synthesis: { provider: "groq", model: "openai/gpt-oss-120b" },
+  // Groq documents a 131,072-token context window for GPT-OSS 120B. Keep
+  // this on the route (rather than in the workspace settings) so changing a
+  // synthesis model cannot silently invalidate the prompt budget.
+  synthesis: { provider: "groq", model: "openai/gpt-oss-120b", contextWindowTokens: 131_072 },
   embed: { provider: "ollama", model: "nomic-embed-text" },
   // Judging faithfulness needs stronger reasoning than the cheap models —
   // the 120b that writes answers also grades them.

@@ -80,6 +80,10 @@ export const conceptCards = pgTable("concept_cards", {
   // picks) and relevance-weighted eviction. Null until embedded — every read
   // path degrades to the pre-embedding behaviour when it's missing.
   embedding: vector("embedding", { dimensions: 768 }),
+  // Allows synthesis to be safely repeated when either the selected source
+  // material or the synthesis prompt changes.
+  generationVersion: integer("generation_version").notNull().default(1),
+  sourceFingerprint: text("source_fingerprint").notNull().default(""),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -93,6 +97,9 @@ export const cardPassages = pgTable(
       .notNull()
       .references(() => passages.id),
     weight: doublePrecision("weight").notNull().default(1),
+    // The synthesis model classifies why a passage belongs to the card. This
+    // remains deliberately open text so packs can use domain-specific roles.
+    evidenceRole: text("evidence_role").notNull().default("supporting"),
   },
   (t) => [primaryKey({ columns: [t.cardId, t.passageId] })],
 );
@@ -105,6 +112,10 @@ export const workspaces = pgTable("workspaces", {
   // H3/H5 tunables: token budget, staleness-vs-importance weighting, and the
   // ask-before-large-load threshold. Null = use defaults (lib/workspace/settings).
   settings: jsonb("settings"),
+  // Optimistic concurrency token for working-memory plans. A plan is only
+  // committed if it was based on this exact revision, so concurrent turns
+  // cannot silently overwrite each other's hydrate/evict decisions.
+  memoryRevision: integer("memory_revision").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

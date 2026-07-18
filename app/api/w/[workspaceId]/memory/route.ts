@@ -6,6 +6,7 @@ import {
   buildRequiredItem,
   loadWorkingSet,
   persistPlan,
+  WorkingMemoryConflictError,
 } from "@/lib/workspace/memoryStore";
 import { resolveSettings } from "@/lib/workspace/settings";
 
@@ -59,12 +60,20 @@ export async function POST(
       currentTurn: Number(turnRows[0]?.count ?? 0),
       stalenessWeight: settings.stalenessWeight,
     });
-    await persistPlan({
-      workspaceId,
-      nextSet: result.nextSet,
-      ops: result.ops,
-      actor: "user",
-    });
+    try {
+      await persistPlan({
+        workspaceId,
+        expectedMemoryRevision: workspace.memoryRevision,
+        nextSet: result.nextSet,
+        ops: result.ops,
+        actor: "user",
+      });
+    } catch (err) {
+      if (err instanceof WorkingMemoryConflictError) {
+        return NextResponse.json({ error: err.message }, { status: 409 });
+      }
+      throw err;
+    }
     return NextResponse.json({ ops: result.ops, overBudget: result.overBudget });
   }
 
@@ -75,11 +84,19 @@ export async function POST(
         ? unpin(currentSet, target)
         : manualEvict(currentSet, target);
 
-  await persistPlan({
-    workspaceId,
-    nextSet: result.nextSet,
-    ops: result.op ? [result.op] : [],
-    actor: "user",
-  });
+  try {
+    await persistPlan({
+      workspaceId,
+      expectedMemoryRevision: workspace.memoryRevision,
+      nextSet: result.nextSet,
+      ops: result.op ? [result.op] : [],
+      actor: "user",
+    });
+  } catch (err) {
+    if (err instanceof WorkingMemoryConflictError) {
+      return NextResponse.json({ error: err.message }, { status: 409 });
+    }
+    throw err;
+  }
   return NextResponse.json({ ops: result.op ? [result.op] : [] });
 }

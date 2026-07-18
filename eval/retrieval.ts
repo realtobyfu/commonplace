@@ -21,6 +21,13 @@
  *   hit@K       fraction of questions with ≥1 expected author in the top K
  *   coverage    mean fraction of a question's expected authors that appear
  *   MRR         mean reciprocal rank of the first expected-author passage
+ *   precision   fraction of selected passages from an expected author. This
+ *               makes irrelevant selections visible instead of rewarding a
+ *               result set merely because it contains one good passage.
+ *   evidence precision / recall  exact-match metrics against the reviewed
+ *               passage key. These deliberately complement, rather than
+ *               replace, author-level scoring: another passage by the right
+ *               author may still support a good answer.
  */
 try {
   process.loadEnvFile(".env");
@@ -103,6 +110,8 @@ interface Score {
   reciprocalRank: number;
   passageHit: boolean;
   passageRecall: number;
+  authorPrecision: number;
+  passagePrecision: number;
   foundAuthors: string[];
 }
 
@@ -121,6 +130,8 @@ function score(item: GoldenItem, orderedAuthors: string[], orderedPassageIds: st
     reciprocalRank: rankIdx === -1 ? 0 : 1 / (rankIdx + 1),
     passageHit: foundPassages.size > 0,
     passageRecall: foundPassages.size / expectedPassages.size,
+    authorPrecision: orderedAuthors.length === 0 ? 0 : found.length / orderedAuthors.length,
+    passagePrecision: orderedPassageIds.length === 0 ? 0 : foundPassages.size / orderedPassageIds.length,
     foundAuthors: [...new Set(orderedAuthors)],
   };
 }
@@ -142,11 +153,16 @@ interface Agg {
   mrr: number;
   passageHit: number;
   passageRecall: number;
+  authorPrecision: number;
+  passagePrecision: number;
   n: number;
 }
 
 function empty(): Agg {
-  return { hit: 0, coverage: 0, mrr: 0, passageHit: 0, passageRecall: 0, n: 0 };
+  return {
+    hit: 0, coverage: 0, mrr: 0, passageHit: 0, passageRecall: 0,
+    authorPrecision: 0, passagePrecision: 0, n: 0,
+  };
 }
 function add(a: Agg, s: Score): void {
   a.hit += s.hit ? 1 : 0;
@@ -154,6 +170,8 @@ function add(a: Agg, s: Score): void {
   a.mrr += s.reciprocalRank;
   a.passageHit += s.passageHit ? 1 : 0;
   a.passageRecall += s.passageRecall;
+  a.authorPrecision += s.authorPrecision;
+  a.passagePrecision += s.passagePrecision;
   a.n += 1;
 }
 function pct(x: number, n: number): string {
@@ -239,6 +257,12 @@ async function main() {
   );
   console.log(
     `    passage recall@${k}        ${num(kw.all.passageRecall, kw.all.n)}          ${num(se.all.passageRecall, se.all.n)}`,
+  );
+  console.log(
+    `    author precision@${k}      ${num(kw.all.authorPrecision, kw.all.n)}          ${num(se.all.authorPrecision, se.all.n)}`,
+  );
+  console.log(
+    `    evidence precision@${k}    ${num(kw.all.passagePrecision, kw.all.n)}          ${num(se.all.passagePrecision, se.all.n)}`,
   );
   console.log("");
   process.exit(0);

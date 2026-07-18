@@ -19,6 +19,8 @@
     "eval-faithfulness": "tsx eval/faithfulness.ts",
     "eval-retrieval": "tsx eval/retrieval.ts",
     "eval-routing": "tsx eval/routing.ts",
+    "eval-sweep-routing": "tsx eval/sweep-routing.ts",
+    "eval-validate-golden": "tsx eval/validate-golden.ts",
     "backfill-work-orientations": "tsx scripts/backfill-work-orientations.ts",
     "normalize-work-orientations": "tsx scripts/normalize-work-orientations.ts",
     "synthesize-missing-cards": "tsx scripts/synthesize-missing-cards.ts"

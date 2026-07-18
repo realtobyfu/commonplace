@@ -27,6 +27,7 @@ const evaluateRouter = process.argv.includes("--router");
 interface Aggregate {
   hit: number;
   recall: number;
+  precision: number;
   n: number;
 }
 
@@ -35,6 +36,9 @@ function add(agg: Aggregate, selected: string[], expected: Set<string>) {
   const found = new Set(selected.filter((id) => expected.has(id)));
   agg.hit += found.size > 0 ? 1 : 0;
   agg.recall += found.size / expected.size;
+  // Empty candidate sets do not get free precision. They are a failed
+  // retrieval, not a perfectly selective one.
+  agg.precision += selected.length === 0 ? 0 : found.size / selected.length;
   agg.n++;
 }
 
@@ -43,11 +47,13 @@ function pct(value: number, n: number) {
 }
 
 async function main() {
-  const cards: Aggregate = { hit: 0, recall: 0, n: 0 };
-  const works: Aggregate = { hit: 0, recall: 0, n: 0 };
-  const routed: Aggregate = { hit: 0, recall: 0, n: 0 };
-  let routedPrecision = 0;
+  const cards: Aggregate = { hit: 0, recall: 0, precision: 0, n: 0 };
+  const works: Aggregate = { hit: 0, recall: 0, precision: 0, n: 0 };
+  const routed: Aggregate = { hit: 0, recall: 0, precision: 0, n: 0 };
   let totalMs = 0;
+  let routerInputTokens = 0;
+  let routerOutputTokens = 0;
+  let routerCostUsd = 0;
 
   console.log(`\nRouting shortlist eval — cards=${cardCap}, works=${workCap}\n`);
   console.log("  case".padEnd(30) + "cards".padEnd(14) + "works");
@@ -133,10 +139,9 @@ async function main() {
         .map((pick) => pick.id);
       const acceptable = new Set([...expectedCards, ...expectedWorks]);
       add(routed, selected, acceptable);
-      routedPrecision +=
-        selected.length === 0
-          ? 0
-          : selected.filter((id) => acceptable.has(id)).length / selected.length;
+      routerInputTokens += result.inputTokens;
+      routerOutputTokens += result.outputTokens;
+      routerCostUsd += result.costUsd;
     }
     totalMs += performance.now() - started;
 
@@ -151,12 +156,17 @@ async function main() {
   console.log(`  card evidence coverage  ${pct(cards.n, GOLDEN.length)} (${cards.n}/${GOLDEN.length} cases have linked cards)`);
   console.log(`  card candidate hit      ${pct(cards.hit, cards.n)} (${cards.n} eligible cases)`);
   console.log(`  card candidate recall   ${cards.n === 0 ? "n/a" : (cards.recall / cards.n).toFixed(2)}`);
+  console.log(`  card candidate precision ${cards.n === 0 ? "n/a" : (cards.precision / cards.n).toFixed(2)} (1 - this is irrelevant-card rate)`);
   console.log(`  work candidate hit      ${pct(works.hit, works.n)}`);
   console.log(`  work candidate recall   ${(works.recall / works.n).toFixed(2)}`);
+  console.log(`  work candidate precision ${(works.precision / works.n).toFixed(2)} (1 - this is irrelevant-work rate)`);
   if (evaluateRouter) {
     console.log(`  router selection hit    ${pct(routed.hit, routed.n)}`);
     console.log(`  router selection recall ${(routed.recall / routed.n).toFixed(2)}`);
-    console.log(`  router precision        ${(routedPrecision / routed.n).toFixed(2)}`);
+    console.log(`  router precision        ${(routed.precision / routed.n).toFixed(2)}`);
+    console.log(`  router input tokens     ${routerInputTokens} (${(routerInputTokens / routed.n).toFixed(0)} mean/question)`);
+    console.log(`  router output tokens    ${routerOutputTokens} (${(routerOutputTokens / routed.n).toFixed(0)} mean/question)`);
+    console.log(`  router cost             $${routerCostUsd.toFixed(4)} ($${(routerCostUsd / routed.n).toFixed(4)} mean/question)`);
   }
   console.log(`  mean stage latency      ${(totalMs / GOLDEN.length).toFixed(0)}ms\n`);
 }

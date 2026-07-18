@@ -1,4 +1,4 @@
-import { and, asc, cosineDistance, eq, ilike, inArray, isNotNull, or, sql } from "drizzle-orm";
+import { and, asc, cosineDistance, eq, ilike, inArray, isNotNull, or, sql, type AnyColumn } from "drizzle-orm";
 import { trace } from "@opentelemetry/api";
 import { getPack } from "@/domain-packs";
 import { db, schema } from "@/lib/db";
@@ -16,6 +16,7 @@ import {
 } from "./memoryStore";
 import { citationsInContext, parseRouterPicks, stripProvenanceMarkers } from "./provenance";
 import { interruptsEnabled, resolveSettings } from "./settings";
+import { planSynthesisPrompt, type ContextBlock } from "./promptBudget";
 
 /**
  * The per-message conversation loop (§11):
@@ -55,6 +56,60 @@ const RETRIEVAL_TOP_K = 6;
 const CARD_SHORTLIST = 12;
 const WORK_SHORTLIST = 6;
 
+/** A bounded lexical candidate query when local embeddings are unavailable. */
+async function lexicalShortlistCandidates(input: {
+  packId: string;
+  message: string;
+}): Promise<{
+  cards: Array<{ id: string; title: string; authorScope: string[] }>;
+  works: Array<{ id: string; title: string; author: string }>;
+}> {
+  // Keep the query deliberately small and deterministic. This is a candidate
+  // generator, not answer retrieval; the router still decides among these.
+  const terms = [...new Set(input.message.toLowerCase().match(/[a-z]{4,}/g) ?? [])]
+    .sort((a, b) => b.length - a.length)
+    .slice(0, 4);
+  if (terms.length === 0) return { cards: [], works: [] };
+
+  const matches = (column: AnyColumn) =>
+    or(...terms.map((term) => ilike(column, `%${term}%`)));
+  const [cards, works] = await Promise.all([
+    db
+      .select({
+        id: schema.conceptCards.id,
+        title: schema.conceptCards.title,
+        authorScope: schema.conceptCards.authorScope,
+      })
+      .from(schema.conceptCards)
+      .where(
+        and(
+          eq(schema.conceptCards.packId, input.packId),
+          or(matches(schema.conceptCards.title), matches(schema.conceptCards.body)),
+        ),
+      )
+      .limit(CARD_SHORTLIST),
+    db
+      .select({
+        id: schema.works.id,
+        title: schema.works.title,
+        author: schema.works.author,
+      })
+      .from(schema.works)
+      .innerJoin(schema.passages, eq(schema.passages.workId, schema.works.id))
+      .innerJoin(schema.summaries, eq(schema.summaries.passageId, schema.passages.id))
+      .where(
+        and(
+          eq(schema.works.packId, input.packId),
+          eq(schema.works.status, "ingested"),
+          matches(schema.summaries.text),
+        ),
+      )
+      .groupBy(schema.works.id, schema.works.title, schema.works.author)
+      .limit(WORK_SHORTLIST),
+  ]);
+  return { cards, works };
+}
+
 /** Timeline rows (§14): meaningful loop steps mirror into `events`. */
 async function emitTimelineEvent(
   workspaceId: string,
@@ -74,7 +129,7 @@ async function emitTimelineEvent(
  * ranked by cosine to the query; works by their single nearest passage (works
  * carry no embedding of their own). Returns null when embeddings aren't
  * available — the query couldn't be embedded, or nothing in the pack is
- * embedded yet — so the caller falls back to the full index.
+ * embedded yet — so the caller uses a bounded lexical candidate search.
  */
 async function shortlistCandidates(input: {
   packId: string;
@@ -137,27 +192,17 @@ async function routeMessage(input: {
   queryVec: number[] | null;
 }): Promise<Array<{ type: "card" | "work"; id: string }>> {
   // Stage 1: embedding shortlist (scalable). Stage 2: the LLM picks from it.
-  // Falls back to the full index only when embeddings are unavailable, so an
-  // Ollama outage degrades to the old behaviour instead of routing to nothing.
+  // Falls back to a bounded lexical candidate search when embeddings are
+  // unavailable. Never hand the router an unbounded corpus-sized index.
   const shortlist = await shortlistCandidates({
     packId: input.packId,
     queryVec: input.queryVec,
   });
-  const cards =
-    shortlist?.cards ??
-    (await db.query.conceptCards.findMany({
-      where: eq(schema.conceptCards.packId, input.packId),
-      columns: { id: true, title: true, authorScope: true },
-    }));
-  const works =
-    shortlist?.works ??
-    (await db.query.works.findMany({
-      where: and(
-        eq(schema.works.packId, input.packId),
-        eq(schema.works.status, "ingested"),
-      ),
-      columns: { id: true, title: true, author: true },
-    }));
+  const lexical = shortlist
+    ? null
+    : await lexicalShortlistCandidates({ packId: input.packId, message: input.message });
+  const cards = shortlist?.cards ?? lexical!.cards;
+  const works = shortlist?.works ?? lexical!.works;
 
   const index = [
     "CONCEPT CARDS:",
@@ -389,7 +434,13 @@ export async function runConversationTurn(input: {
 
   let retrieved = false;
   if (required.length === 0) {
+    const retrievalStartedAt = performance.now();
     const passageIds = await retrievalFallback({ packId: workspace.packId, message });
+    trace.getActiveSpan()?.setAttribute(
+      "retrieval.latency_ms",
+      performance.now() - retrievalStartedAt,
+    );
+    trace.getActiveSpan()?.setAttribute("retrieval.selected_passages", passageIds.length);
     for (const id of passageIds) {
       const item = await buildRequiredItem("passage", id, 1);
       if (item) required.push(item);
@@ -472,25 +523,50 @@ export async function runConversationTurn(input: {
           : op,
       )
     : planned.ops;
-  await persistPlan({ workspaceId, nextSet: planned.nextSet, ops, actor: "agent" });
+  await persistPlan({
+    workspaceId,
+    expectedMemoryRevision: workspace.memoryRevision,
+    nextSet: planned.nextSet,
+    ops,
+    actor: "agent",
+  });
   for (const op of ops) {
     await emit({ type: "memory_op", ...op });
   }
 
   // 3. synthesize (streaming)
   const ordered = orderForContext(planned.nextSet);
-  const contextPassageIds = await contextPassageIdsForItems(ordered);
-  const contextBlocks: string[] = [];
+  const renderedItems: Array<{ item: (typeof ordered)[number]; block: ContextBlock }> = [];
   for (const item of ordered) {
-    const block = await renderItem(item);
-    if (block) contextBlocks.push(block);
+    const text = await renderItem(item);
+    if (text) {
+      renderedItems.push({
+        item,
+        block: { kind: item.state === "hydrated" ? "evidence" : "orientation", text },
+      });
+    }
   }
-  const prompt = [
-    "WORKING MEMORY:",
-    contextBlocks.join("\n\n---\n\n") || "(empty — say so honestly)",
-    "\n===\n",
-    `Reader's question: ${message}`,
-  ].join("\n");
+  // The planner selects from exact rendered blocks under separate evidence and
+  // orientation caps, then counts the whole request (system + separators +
+  // question) against the route's provider context window.
+  const promptPlan = planSynthesisPrompt({
+    system: pack.prompts.answerSystem,
+    question: message,
+    blocks: renderedItems.map((entry) => entry.block),
+    detailedEvidenceBudgetTokens: settings.tokenBudget,
+  });
+  const selectedBlocks = new Set(promptPlan.blocks);
+  const contextPassageIds = await contextPassageIdsForItems(
+    renderedItems.filter((entry) => selectedBlocks.has(entry.block)).map((entry) => entry.item),
+  );
+  const prompt = promptPlan.prompt;
+  // This is a preflight observability value. The provider's input-token count
+  // is recorded by chatStream and is the billable/authoritative measurement.
+  trace.getActiveSpan()?.setAttribute("synthesis.prompt_chars", prompt.length);
+  trace.getActiveSpan()?.setAttribute(
+    "synthesis.planned_input_tokens",
+    promptPlan.budget.renderedInputTokens,
+  );
 
   let fullText = "";
   try {

@@ -127,6 +127,7 @@ async function ollamaChat(
 export async function chat(job: JobKind, opts: ChatOptions): Promise<ChatResult> {
   const route = routing[job];
   return await tracer.startActiveSpan(`llm.${job}`, async (span) => {
+    const startedAt = performance.now();
     try {
       if (route.provider === "groq") await assertUnderSpendCap();
       const raw =
@@ -140,6 +141,11 @@ export async function chat(job: JobKind, opts: ChatOptions): Promise<ChatResult>
         "llm.input_tokens": raw.inputTokens,
         "llm.output_tokens": raw.outputTokens,
         "llm.cost_usd": costUsd,
+        // Provider usage is authoritative after the response. Prompt chars
+        // are still useful before that usage arrives, and make prompt growth
+        // visible in traces for every non-streaming request.
+        "llm.prompt_chars": opts.prompt.length + (opts.system?.length ?? 0),
+        "llm.latency_ms": performance.now() - startedAt,
       });
       await recordCost({
         workspaceId: opts.workspaceId,
@@ -182,6 +188,8 @@ export async function chatStream(
   await assertUnderSpendCap();
 
   const span = tracer.startSpan(`llm.${job}.stream`);
+  const startedAt = performance.now();
+  let firstTokenAt: number | null = null;
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -238,7 +246,10 @@ export async function chatStream(
             outputTokens = usage.completion_tokens ?? outputTokens;
           }
           const delta = parsed.choices?.[0]?.delta?.content;
-          if (delta) yield delta;
+          if (delta) {
+            if (firstTokenAt === null) firstTokenAt = performance.now();
+            yield delta;
+          }
         }
       }
       const costUsd = computeCostUsd(route.model, inputTokens, outputTokens);
@@ -248,6 +259,10 @@ export async function chatStream(
         "llm.input_tokens": inputTokens,
         "llm.output_tokens": outputTokens,
         "llm.cost_usd": costUsd,
+        "llm.prompt_chars": opts.prompt.length + (opts.system?.length ?? 0),
+        "llm.latency_ms": performance.now() - startedAt,
+        "llm.time_to_first_token_ms":
+          firstTokenAt === null ? -1 : firstTokenAt - startedAt,
       });
       await recordCost({
         workspaceId: opts.workspaceId,

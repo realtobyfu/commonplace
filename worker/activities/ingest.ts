@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { Context } from "@temporalio/activity";
@@ -16,6 +17,7 @@ import {
 } from "drizzle-orm";
 import { getPack } from "@/domain-packs";
 import { chunkWork } from "@/lib/chunking";
+import { chooseDiverseCardMatches, type CardMatch } from "@/lib/conceptCards";
 import { db, schema } from "@/lib/db";
 import { chat, embed, fillTemplate } from "@/lib/llm";
 import { capOrientationSummary } from "@/lib/workspace/orientation";
@@ -37,6 +39,35 @@ interface ManifestWork {
   licenseNote: string;
   wordCount: number;
   file: string;
+}
+
+type CardEvidence = { passageId: string; weight: number; role: string };
+
+function cardSourceFingerprint(title: string, prompt: string, matches: CardMatch[]): string {
+  return createHash("sha256")
+    .update(JSON.stringify({ title, prompt, matches: matches.map(({ passageId, summary }) => ({ passageId, summary })) }))
+    .digest("hex");
+}
+
+function parseCardResult(text: string, allowedPassageIds: Set<string>): { body: string; evidence: CardEvidence[] } {
+  try {
+    const parsed = JSON.parse(text) as { body?: unknown; evidence?: unknown };
+    if (typeof parsed.body !== "string" || !parsed.body.trim()) throw new Error("No card body");
+    const evidence = Array.isArray(parsed.evidence)
+      ? parsed.evidence.flatMap((item): CardEvidence[] => {
+          if (!item || typeof item !== "object") return [];
+          const row = item as Record<string, unknown>;
+          if (typeof row.passageId !== "string" || !allowedPassageIds.has(row.passageId)) return [];
+          const role = typeof row.role === "string" && row.role.trim() ? row.role.trim().slice(0, 80) : "supporting";
+          const weight = typeof row.weight === "number" && Number.isFinite(row.weight)
+            ? Math.min(1, Math.max(0, row.weight)) : 0.5;
+          return [{ passageId: row.passageId, weight, role }];
+        })
+      : [];
+    return { body: parsed.body.trim(), evidence };
+  } catch {
+    return { body: text.trim(), evidence: [] };
+  }
 }
 
 async function emitEvent(
@@ -449,16 +480,8 @@ export async function synthesizeConceptCards(input: {
       // No active Temporal activity context.
     }
     const title = seed;
-    const existing = await db.query.conceptCards.findFirst({
-      where: and(
-        eq(schema.conceptCards.packId, input.packId),
-        eq(schema.conceptCards.title, title),
-      ),
-    });
-    if (existing) continue; // idempotent re-run
-
     const seedVector = (await embed([seed]))?.[0] ?? null;
-    const matches = seedVector
+    const rawMatches = seedVector
       ? await db
           .select({
             passageId: schema.summaries.passageId,
@@ -496,53 +519,84 @@ export async function synthesizeConceptCards(input: {
             ),
           )
           .limit(40);
-    if (matches.length < 8) continue; // not enough material for a card
+    if (rawMatches.length < 8) continue; // not enough material for a card
+    const matches = chooseDiverseCardMatches(rawMatches, 16);
+    const promptFingerprint = cardSourceFingerprint(title, pack.prompts.synthesizeCard, matches);
+    const existing = await db.query.conceptCards.findFirst({
+      where: and(
+        eq(schema.conceptCards.packId, input.packId),
+        eq(schema.conceptCards.title, title),
+      ),
+    });
+    if (existing?.sourceFingerprint === promptFingerprint) continue; // idempotent re-run
 
     const summariesBlock = matches
-      .map((m) => `- (${m.author}, ${m.work}) ${m.summary}`)
+      .map((m) => `- [p:${m.passageId}] (${m.author}, ${m.work}) ${m.summary}`)
       .join("\n");
     const result = await chat("concept_card", {
       prompt: fillTemplate(pack.prompts.synthesizeCard, {
         concept: title,
         summaries: summariesBlock,
       }),
+      json: true,
       maxTokens: 600,
       workspaceId: input.workspaceId,
     });
 
-    const body = result.text.trim();
+    const parsed = parseCardResult(result.text, new Set(matches.map((m) => m.passageId)));
+    const body = parsed.body;
     // Embed the card in the same space as passages so the router can
     // cosine-shortlist it and eviction can score its relevance. Deferred
     // (null) when Ollama is down — scripts/embed-cards.ts backfills later,
     // exactly like passage embeddings.
     const cardVector = (await embed([`${title}\n\n${body}`]))?.[0] ?? null;
-    const inserted = await db
-      .insert(schema.conceptCards)
-      .values({
-        packId: input.packId,
-        title,
-        body,
-        authorScope: [...new Set(matches.map((m) => m.author))],
-        embedding: cardVector,
-      })
-      .returning({ id: schema.conceptCards.id });
-    const card = inserted[0];
-    if (!card) continue;
-    for (const m of matches) {
-      await db
-        .insert(schema.cardPassages)
+    const evidenceByPassage = new Map(parsed.evidence.map((e) => [e.passageId, e]));
+    const links = matches.map((m) => {
+      const modelEvidence = evidenceByPassage.get(m.passageId);
+      return {
+        passageId: m.passageId,
+        // Model editorial judgement adjusts, rather than replaces, retrieval relevance.
+        weight: Math.max(0, Number(m.weight)) * (0.5 + (modelEvidence?.weight ?? 0.5)),
+        evidenceRole: modelEvidence?.role ?? "supporting",
+      };
+    });
+    const card = await db.transaction(async (tx) => {
+      if (existing) {
+        await tx
+          .update(schema.conceptCards)
+          .set({
+            body,
+            authorScope: [...new Set(matches.map((m) => m.author))],
+            embedding: cardVector,
+            sourceFingerprint: promptFingerprint,
+            generationVersion: existing.generationVersion + 1,
+          })
+          .where(eq(schema.conceptCards.id, existing.id));
+        await tx.delete(schema.cardPassages).where(eq(schema.cardPassages.cardId, existing.id));
+        await tx.insert(schema.cardPassages).values(links.map((link) => ({ cardId: existing.id, ...link })));
+        return { id: existing.id, updated: true };
+      }
+      const inserted = await tx
+        .insert(schema.conceptCards)
         .values({
-          cardId: card.id,
-          passageId: m.passageId,
-          weight: Math.max(0, Number(m.weight)),
+          packId: input.packId,
+          title,
+          body,
+          authorScope: [...new Set(matches.map((m) => m.author))],
+          embedding: cardVector,
+          sourceFingerprint: promptFingerprint,
         })
-        .onConflictDoNothing();
-    }
+        .returning({ id: schema.conceptCards.id });
+      const created = inserted[0];
+      if (!created) throw new Error("Could not create concept card");
+      await tx.insert(schema.cardPassages).values(links.map((link) => ({ cardId: created.id, ...link })));
+      return { id: created.id, updated: false };
+    });
     cards++;
     await emitEvent(
       input.workspaceId,
       "card_created",
-      `New concept card: *${title}* — drawn from ${matches.length} passages.`,
+      `${card.updated ? "Updated" : "New"} concept card: *${title}* — drawn from ${matches.length} diverse passages.`,
     );
   }
   return { cards };
